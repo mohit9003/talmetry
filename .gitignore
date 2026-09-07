@@ -18,3 +18,8 @@ backend/target/
 Thumbs.db
 
 backend/src/main/resources/application.properties
+
+
+# Uploaded resumes
+backend/uploads/
+ai-service/uploads/

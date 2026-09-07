@@ -50,9 +50,13 @@ function Login() {
       setMessage("Login successful!");
 
       // Temporary redirect
-      setTimeout(() => {
-        navigate("/");
-      }, 800);
+     setTimeout(() => {
+  if (data.role === "CANDIDATE") {
+    navigate("/candidate-dashboard");
+  } else {
+    navigate("/");
+  }
+}, 800);
 
     } catch (error) {
       setMessage("Backend server is not running.");

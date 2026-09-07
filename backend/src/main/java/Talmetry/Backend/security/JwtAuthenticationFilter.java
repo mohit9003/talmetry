@@ -42,20 +42,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String email = jwtService.extractEmail(token);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of()
-                    );
+UsernamePasswordAuthenticationToken authentication =
+        new UsernamePasswordAuthenticationToken(
+                email,
+                null,
+                List.of(
+                        new SimpleGrantedAuthority("ROLE_CANDIDATE")
+                )
+        );
 
             SecurityContextHolder
                     .getContext()
                     .setAuthentication(authentication);
 
         } catch (Exception e) {
-            // Invalid or expired token
-        }
+    e.printStackTrace();
+}
 
         filterChain.doFilter(request, response);
     }

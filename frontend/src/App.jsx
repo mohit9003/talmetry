@@ -3,6 +3,9 @@ import "./App.css";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import CandidateDashboard from "./pages/CandidateDashboard";
+import MyProfile from "./pages/MyProfile";
+import Resume from "./pages/Resume";
 
 function Home() {
   return (
@@ -134,6 +137,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+        <Route path="/my-profile" element={<MyProfile />} />
+        <Route path="/resume" element={<Resume />} />
       </Routes>
     </BrowserRouter>
   );
