@@ -3,3 +3,6 @@ uvicorn
 python-multipart
 pypdf
 python-docx
+pymupdf
+pytesseract
+pillow

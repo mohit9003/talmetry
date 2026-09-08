@@ -29,21 +29,21 @@ public class ResumeAnalysisController {
     }
 
     // Create analysis record
-    @PostMapping("/{resumeId}")
-    public ResponseEntity<?> createAnalysis(
-            @PathVariable Long resumeId) {
+   @PostMapping("/{resumeId}")
+public ResponseEntity<?> createAnalysis(
+        @PathVariable Long resumeId) {
 
-        try {
+    try {
 
-            ResumeAnalysis analysis =
-                    analysisService.createAnalysis(resumeId);
+        ResumeAnalysis analysis =
+                analysisService.analyzeResume(resumeId);
 
-            return ResponseEntity.ok(analysis);
+        return ResponseEntity.ok(analysis);
 
-        } catch (Exception e) {
+    } catch (Exception e) {
 
-            return ResponseEntity.badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.badRequest()
+                .body(e.getMessage());
     }
+}
 }

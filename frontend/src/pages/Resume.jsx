@@ -1,19 +1,86 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
+const normalizeList = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => {
+        if (typeof item === "string") return [item];
+        if (item && typeof item === "object") {
+          return Object.values(item).map(String);
+        }
+        return [];
+      })
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/\s*(?:,|\n|\r\n)\s*/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (value == null) return [];
+
+  return [String(value).trim()].filter(Boolean);
+};
+
+const normalizeAnalysis = (data) => {
+  const source = data?.analysis || data?.result || data || {};
+
+  return {
+    atsScore: Number(
+      source.atsScore ??
+      source.ats_score ??
+      source.score ??
+      0
+    ),
+
+    extractedSkills: normalizeList(
+      source.extractedSkills ??
+      source.extracted_skills ??
+      source.skills
+    ),
+
+    strengths: normalizeList(source.strengths),
+
+    weaknesses: normalizeList(
+      source.weaknesses ??
+      source.areasToImprove ??
+      source.areas_to_improve
+    ),
+
+    suggestions: normalizeList(
+      source.suggestions ??
+      source.recommendations
+    ),
+  };
+};
 function Resume() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [file, setFile] = useState(null);
   const [uploadedResume, setUploadedResume] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
-    const fetchResume = async () => {
+    if (!user?.id || !user?.token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchResumeAndAnalysis = async () => {
       try {
-        const response = await fetch(
+        // Fetch uploaded resume
+        const resumeResponse = await fetch(
           `http://localhost:8080/api/candidate/resume/${user.id}`,
           {
             headers: {
@@ -22,17 +89,38 @@ function Resume() {
           }
         );
 
-        if (response.ok) {
-          const data = await response.json();
-          setUploadedResume(data);
+        if (resumeResponse.ok) {
+          const resumeData = await resumeResponse.json();
+          setUploadedResume(resumeData);
+
+          // Fetch existing analysis
+          const analysisResponse = await fetch(
+            `http://localhost:8080/api/candidate/resume-analysis/${resumeData.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+              },
+            }
+          );
+
+          if (analysisResponse.ok) {
+            const analysisData = await analysisResponse.json();
+
+console.log(
+  "SAVED ANALYSIS RESPONSE:",
+  analysisData
+);
+
+setAnalysis(normalizeAnalysis(analysisData));
+          }
         }
       } catch (error) {
-        console.log("Resume fetch error:", error);
+        console.log("Resume/Analysis fetch error:", error);
       }
     };
 
-    fetchResume();
-  }, [user.id, user.token]);
+    fetchResumeAndAnalysis();
+  }, [user?.id, user?.token, navigate]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -93,9 +181,9 @@ function Resume() {
       }
 
       setUploadedResume(data);
+      setAnalysis(null);
       setFile(null);
       setMessage("Resume uploaded successfully!");
-
     } catch (error) {
       setMessage(error.message || "Something went wrong.");
     } finally {
@@ -103,7 +191,6 @@ function Resume() {
     }
   };
 
-  // View resume
   const handleViewResume = async () => {
     try {
       setMessage("");
@@ -122,15 +209,80 @@ function Resume() {
       }
 
       const blob = await response.blob();
-
       const url = window.URL.createObjectURL(blob);
 
       window.open(url, "_blank");
-
     } catch (error) {
       setMessage(error.message || "Unable to open resume");
     }
   };
+
+  const handleAnalyzeResume = async () => {
+  if (!uploadedResume) {
+    setMessage("Please upload a resume first.");
+    return;
+  }
+
+  setAnalyzing(true);
+  setMessage("🤖 AI is analyzing your resume...");
+
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/candidate/resume-analysis/${uploadedResume.id}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("RAW AI ANALYSIS RESPONSE:", data);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        "Resume analysis failed"
+      );
+    }
+
+    const normalizedData = normalizeAnalysis(data);
+
+    console.log(
+      "NORMALIZED ANALYSIS:",
+      normalizedData
+    );
+
+    setAnalysis(normalizedData);
+
+    const hasResult =
+      normalizedData.atsScore > 0 ||
+      normalizedData.extractedSkills.length > 0 ||
+      normalizedData.strengths.length > 0 ||
+      normalizedData.weaknesses.length > 0 ||
+      normalizedData.suggestions.length > 0;
+
+    if (hasResult) {
+      setMessage("✅ Resume analyzed successfully!");
+    } else {
+      setMessage(
+        "⚠️ Analysis completed, but no result fields were returned."
+      );
+    }
+
+  } catch (error) {
+    console.error("Analysis Error:", error);
+
+    setMessage(
+      `❌ ${error.message || "Unable to analyze resume"}`
+    );
+  } finally {
+    setAnalyzing(false);
+  }
+};
 
   return (
     <div className="resume-page">
@@ -155,6 +307,8 @@ function Resume() {
           job matching and ATS insights.
         </p>
 
+        {/* Uploaded Resume */}
+
         {uploadedResume && (
           <div className="uploaded-resume">
 
@@ -173,10 +327,20 @@ function Resume() {
             </div>
 
             <button
+              type="button"
               className="view-resume-button"
               onClick={handleViewResume}
             >
               View
+            </button>
+
+            <button
+              type="button"
+              className="analyze-resume-button"
+              onClick={handleAnalyzeResume}
+              disabled={analyzing}
+            >
+              {analyzing ? "Analyzing..." : "Analyze"}
             </button>
 
             <div className="uploaded-status">
@@ -185,6 +349,8 @@ function Resume() {
 
           </div>
         )}
+
+        {/* Upload Form */}
 
         <form onSubmit={handleUpload}>
 
@@ -197,9 +363,7 @@ function Resume() {
             />
 
             <span className="upload-title">
-              {file
-                ? file.name
-                : "Choose your resume"}
+              {file ? file.name : "Choose your resume"}
             </span>
 
             <span className="upload-subtitle">
@@ -213,16 +377,134 @@ function Resume() {
             className="upload-button"
             disabled={uploading}
           >
-            {uploading
-              ? "Uploading..."
-              : "Upload Resume"}
+            {uploading ? "Uploading..." : "Upload Resume"}
           </button>
 
         </form>
 
         {message && (
           <div className="resume-message">
-            {message}
+            <span>{message}</span>
+
+            {message.startsWith("❌") && uploadedResume && (
+              <button
+                type="button"
+                className="retry-analysis-button"
+                onClick={handleAnalyzeResume}
+                disabled={analyzing}
+              >
+                🔄 Retry Analysis
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* AI Analysis */}
+
+        {analysis && (
+          <div className="analysis-section">
+
+            <div className="analysis-header">
+              <div>
+                <span className="analysis-label">
+                  AI RESUME ANALYSIS
+                </span>
+
+                <h2>
+                  Your Resume Performance
+                </h2>
+              </div>
+
+              <div className="ats-score">
+                <span>{analysis.atsScore}</span>
+                <small>/100</small>
+                <label>ATS Score</label>
+              </div>
+            </div>
+
+            {/* Skills */}
+
+            <div className="analysis-card">
+
+              <h3>🛠️ Extracted Skills</h3>
+
+              <div className="skills-list">
+                {analysis.extractedSkills.length > 0 ? (
+                  analysis.extractedSkills.map((skill, index) => (
+                    <span key={index}>
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <p>No skills detected.</p>
+                )}
+              </div>
+
+            </div>
+
+            {/* Strengths */}
+
+            <div className="analysis-card">
+
+              <h3>💪 Strengths</h3>
+
+              {analysis.strengths.length > 0 ? (
+                analysis.strengths.map((item, index) => (
+                  <div
+                    className="analysis-item strength"
+                    key={index}
+                  >
+                    ✓ {item}
+                  </div>
+                ))
+              ) : (
+                <p>No strengths detected.</p>
+              )}
+
+            </div>
+
+            {/* Weaknesses */}
+
+            <div className="analysis-card">
+
+              <h3>⚠️ Areas to Improve</h3>
+
+              {analysis.weaknesses.length > 0 ? (
+                analysis.weaknesses.map((item, index) => (
+                  <div
+                    className="analysis-item weakness"
+                    key={index}
+                  >
+                    • {item}
+                  </div>
+                ))
+              ) : (
+                <p>No major weaknesses detected.</p>
+              )}
+
+            </div>
+
+            {/* Suggestions */}
+
+            <div className="analysis-card">
+
+              <h3>💡 AI Suggestions</h3>
+
+              {analysis.suggestions.length > 0 ? (
+                analysis.suggestions.map((item, index) => (
+                  <div
+                    className="analysis-item suggestion"
+                    key={index}
+                  >
+                    → {item}
+                  </div>
+                ))
+              ) : (
+                <p>No suggestions available.</p>
+              )}
+
+            </div>
+
           </div>
         )}
 

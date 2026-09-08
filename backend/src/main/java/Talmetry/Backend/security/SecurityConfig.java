@@ -34,12 +34,22 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
-        .requestMatchers(
-                "/api/auth/register",
-                "/api/auth/login"
-        ).permitAll()
-        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-        .anyRequest().authenticated()
+
+    .requestMatchers(
+        "/api/auth/register",
+        "/api/auth/login"
+    ).permitAll()
+
+    .requestMatchers(
+        "/api/jobs/**"
+    ).permitAll()
+
+    .requestMatchers(
+        org.springframework.http.HttpMethod.OPTIONS,
+        "/**"
+    ).permitAll()
+
+    .anyRequest().authenticated()
 )
             .addFilterBefore(
                 jwtAuthenticationFilter,
