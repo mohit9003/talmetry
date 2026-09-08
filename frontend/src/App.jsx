@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import CandidateDashboard from "./pages/CandidateDashboard";
 import MyProfile from "./pages/MyProfile";
 import Resume from "./pages/Resume";
+import RecommendedJobs from "./pages/RecommendedJobs";
+import JobDetails from "./pages/JobDetails";
 
 function Home() {
   return (
@@ -140,6 +142,14 @@ function App() {
         <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/resume" element={<Resume />} />
+        <Route
+          path="/recommended-jobs"
+          element={<RecommendedJobs />}
+        />
+        <Route
+          path="/job/:id"
+          element={<JobDetails />}
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -22,32 +22,49 @@ public class JobController {
     // Create a new job
     @PostMapping
     public ResponseEntity<Job> createJob(@RequestBody Job job) {
+
         Job savedJob = jobService.createJob(job);
+
         return ResponseEntity.ok(savedJob);
     }
 
     // Get all jobs
     @GetMapping
     public ResponseEntity<List<Job>> getAllJobs() {
-        return ResponseEntity.ok(jobService.getAllJobs());
+
+        return ResponseEntity.ok(
+                jobService.getAllJobs()
+        );
     }
 
     // Get only open jobs
     @GetMapping("/open")
     public ResponseEntity<List<Job>> getOpenJobs() {
-        return ResponseEntity.ok(jobService.getOpenJobs());
+
+        return ResponseEntity.ok(
+                jobService.getOpenJobs()
+        );
     }
 
     // Get job by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Job> getJobById(@PathVariable Long id) {
-        return ResponseEntity.ok(jobService.getJobById(id));
+    public ResponseEntity<Job> getJobById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                jobService.getJobById(id)
+        );
     }
 
     // Delete job
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteJob(@PathVariable Long id) {
+    public ResponseEntity<String> deleteJob(
+            @PathVariable Long id) {
+
         jobService.deleteJob(id);
-        return ResponseEntity.ok("Job deleted successfully");
+
+        return ResponseEntity.ok(
+                "Job deleted successfully"
+        );
     }
 }

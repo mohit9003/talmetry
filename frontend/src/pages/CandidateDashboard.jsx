@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function CandidateDashboard() {
   const navigate = useNavigate();
+
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [activeMenu, setActiveMenu] = useState("Dashboard");
@@ -19,14 +20,34 @@ function CandidateDashboard() {
   const handleMenuClick = (item) => {
     setActiveMenu(item);
 
-    if (item === "Dashboard") {
-      navigate("/candidate-dashboard");
-    }
+    switch (item) {
+      case "Dashboard":
+        navigate("/candidate-dashboard");
+        break;
 
-    if (item === "My Profile") {
-      navigate("/my-profile");
+      case "My Profile":
+        navigate("/my-profile");
+        break;
+
+      case "Resume":
+        navigate("/resume");
+        break;
+
+      case "Recommended Jobs":
+        navigate("/recommended-jobs");
+        break;
+
+      case "Applications":
+        navigate("/applications");
+        break;
+
+      case "AI Interview":
+        navigate("/ai-interview");
+        break;
+
+      default:
+        break;
     }
-    if (item === "Resume") navigate("/resume");
   };
 
   const handleLogout = () => {
@@ -69,6 +90,7 @@ function CandidateDashboard() {
 
       </aside>
 
+
       {/* Main Content */}
       <main className="dashboard-main">
 
@@ -96,11 +118,13 @@ function CandidateDashboard() {
 
         </header>
 
+
         {/* Stats */}
         <section className="dashboard-stats">
 
           <div className="dashboard-stat-card">
             <span>Profile Completion</span>
+
             <strong>72%</strong>
 
             <div className="progress-bar">
@@ -111,25 +135,41 @@ function CandidateDashboard() {
             </div>
           </div>
 
+
           <div className="dashboard-stat-card">
             <span>Jobs Matched</span>
+
             <strong>24</strong>
-            <small>Based on your skills</small>
+
+            <small>
+              Based on your skills
+            </small>
           </div>
+
 
           <div className="dashboard-stat-card">
             <span>Applications</span>
+
             <strong>8</strong>
-            <small>2 interviews scheduled</small>
+
+            <small>
+              2 interviews scheduled
+            </small>
           </div>
+
 
           <div className="dashboard-stat-card">
             <span>AI Interview Score</span>
+
             <strong>86%</strong>
-            <small>Excellent performance</small>
+
+            <small>
+              Excellent performance
+            </small>
           </div>
 
         </section>
+
 
         {/* Recommended Jobs + Skills */}
         <section className="dashboard-grid">
@@ -140,15 +180,25 @@ function CandidateDashboard() {
             <div className="card-heading">
 
               <div>
-                <h2>Recommended Jobs</h2>
-                <p>Jobs matching your profile</p>
+                <h2>
+                  Recommended Jobs
+                </h2>
+
+                <p>
+                  Jobs matching your profile
+                </p>
               </div>
 
-              <button>
+              <button
+                onClick={() =>
+                  navigate("/recommended-jobs")
+                }
+              >
                 View All
               </button>
 
             </div>
+
 
             <div className="job-item">
 
@@ -157,18 +207,31 @@ function CandidateDashboard() {
               </div>
 
               <div className="job-info">
-                <h3>Java Backend Developer</h3>
+
+                <h3>
+                  Java Backend Developer
+                </h3>
+
                 <p>
                   TechNova Solutions • Remote
                 </p>
+
               </div>
 
               <div className="match-score">
-                <strong>94%</strong>
-                <span>Match</span>
+
+                <strong>
+                  94%
+                </strong>
+
+                <span>
+                  Match
+                </span>
+
               </div>
 
             </div>
+
 
             <div className="job-item">
 
@@ -177,18 +240,31 @@ function CandidateDashboard() {
               </div>
 
               <div className="job-info">
-                <h3>Full Stack Developer</h3>
+
+                <h3>
+                  Full Stack Developer
+                </h3>
+
                 <p>
                   Innovate Labs • Bangalore
                 </p>
+
               </div>
 
               <div className="match-score">
-                <strong>89%</strong>
-                <span>Match</span>
+
+                <strong>
+                  89%
+                </strong>
+
+                <span>
+                  Match
+                </span>
+
               </div>
 
             </div>
+
 
             <div className="job-item">
 
@@ -197,20 +273,33 @@ function CandidateDashboard() {
               </div>
 
               <div className="job-info">
-                <h3>Software Engineer</h3>
+
+                <h3>
+                  Software Engineer
+                </h3>
+
                 <p>
                   Smart Systems • Noida
                 </p>
+
               </div>
 
               <div className="match-score">
-                <strong>84%</strong>
-                <span>Match</span>
+
+                <strong>
+                  84%
+                </strong>
+
+                <span>
+                  Match
+                </span>
+
               </div>
 
             </div>
 
           </div>
+
 
           {/* Skills */}
           <div className="dashboard-card">
@@ -218,15 +307,22 @@ function CandidateDashboard() {
             <div className="card-heading">
 
               <div>
-                <h2>Your Skills</h2>
+
+                <h2>
+                  Your Skills
+                </h2>
+
                 <p>
                   Skills detected from your profile
                 </p>
+
               </div>
 
             </div>
 
+
             <div className="skills-container">
+
               <span>Java</span>
               <span>JavaScript</span>
               <span>Python</span>
@@ -234,11 +330,15 @@ function CandidateDashboard() {
               <span>Spring Boot</span>
               <span>SQL</span>
               <span>Git</span>
+
             </div>
+
 
             <button
               className="secondary-button"
-              onClick={() => navigate("/my-profile")}
+              onClick={() =>
+                navigate("/my-profile")
+              }
             >
               Update Skills
             </button>
@@ -246,6 +346,7 @@ function CandidateDashboard() {
           </div>
 
         </section>
+
 
         {/* Applications + AI Interview */}
         <section className="dashboard-grid">
@@ -256,19 +357,40 @@ function CandidateDashboard() {
             <div className="card-heading">
 
               <div>
-                <h2>Recent Applications</h2>
+
+                <h2>
+                  Recent Applications
+                </h2>
+
                 <p>
                   Your latest job applications
                 </p>
+
               </div>
 
+              <button
+                onClick={() =>
+                  navigate("/applications")
+                }
+              >
+                View All
+              </button>
+
             </div>
+
 
             <div className="application-row">
 
               <div>
-                <h3>Backend Developer</h3>
-                <p>TechNova Solutions</p>
+
+                <h3>
+                  Backend Developer
+                </h3>
+
+                <p>
+                  TechNova Solutions
+                </p>
+
               </div>
 
               <span className="status interview">
@@ -277,11 +399,19 @@ function CandidateDashboard() {
 
             </div>
 
+
             <div className="application-row">
 
               <div>
-                <h3>Software Engineer</h3>
-                <p>CloudWorks</p>
+
+                <h3>
+                  Software Engineer
+                </h3>
+
+                <p>
+                  CloudWorks
+                </p>
+
               </div>
 
               <span className="status review">
@@ -290,11 +420,19 @@ function CandidateDashboard() {
 
             </div>
 
+
             <div className="application-row">
 
               <div>
-                <h3>React Developer</h3>
-                <p>Digital Labs</p>
+
+                <h3>
+                  React Developer
+                </h3>
+
+                <p>
+                  Digital Labs
+                </p>
+
               </div>
 
               <span className="status applied">
@@ -304,6 +442,7 @@ function CandidateDashboard() {
             </div>
 
           </div>
+
 
           {/* AI Interview */}
           <div className="dashboard-card ai-interview-card">
@@ -322,7 +461,12 @@ function CandidateDashboard() {
               skills.
             </p>
 
-            <button className="primary-button">
+            <button
+              className="primary-button"
+              onClick={() =>
+                navigate("/ai-interview")
+              }
+            >
               Start AI Interview →
             </button>
 

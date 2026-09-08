@@ -30,13 +30,13 @@ public class JobMatchingService {
 
     public List<Map<String, Object>> getRecommendedJobs(Long userId) {
 
-        // Find candidate's resume
+        // Candidate resume
         Resume resume = resumeRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new RuntimeException("Resume not found for candidate")
                 );
 
-        // Find resume analysis
+        // Resume analysis
         ResumeAnalysis analysis = analysisRepository
                 .findByResumeId(resume.getId())
                 .orElseThrow(() ->
@@ -47,7 +47,7 @@ public class JobMatchingService {
         Set<String> candidateSkills =
                 convertToSet(analysis.getExtractedSkills());
 
-        // Get all open jobs
+        // Open jobs
         List<Job> jobs = jobRepository.findByStatus("OPEN");
 
         List<Map<String, Object>> recommendedJobs = new ArrayList<>();
@@ -61,19 +61,26 @@ public class JobMatchingService {
                 continue;
             }
 
-            int matchedSkills = 0;
+            List<String> matchedSkills = new ArrayList<>();
 
             for (String requiredSkill : requiredSkills) {
 
-                if (candidateSkills.contains(requiredSkill)) {
-                    matchedSkills++;
+                if (isSkillMatched(requiredSkill, candidateSkills)) {
+                    matchedSkills.add(requiredSkill);
                 }
             }
 
-            int matchScore =
-                    (matchedSkills * 100) / requiredSkills.size();
+            int matchedCount = matchedSkills.size();
 
-            Map<String, Object> result = new LinkedHashMap<>();
+            int totalSkills = requiredSkills.size();
+
+            int matchScore =
+                    (int) Math.round(
+                            ((double) matchedCount / totalSkills) * 100
+                    );
+
+            Map<String, Object> result =
+                    new LinkedHashMap<>();
 
             result.put("id", job.getId());
             result.put("title", job.getTitle());
@@ -88,12 +95,13 @@ public class JobMatchingService {
 
             result.put("matchScore", matchScore);
             result.put("matchedSkills", matchedSkills);
-            result.put("totalRequiredSkills", requiredSkills.size());
+            result.put("matchedSkillsCount", matchedCount);
+            result.put("totalRequiredSkills", totalSkills);
 
             recommendedJobs.add(result);
         }
 
-        // Highest match first
+        // Highest matching jobs first
         recommendedJobs.sort((a, b) ->
                 Integer.compare(
                         (Integer) b.get("matchScore"),
@@ -104,6 +112,96 @@ public class JobMatchingService {
         return recommendedJobs;
     }
 
+
+    // -----------------------------------------
+    // SKILL MATCHING
+    // -----------------------------------------
+
+    private boolean isSkillMatched(
+            String requiredSkill,
+            Set<String> candidateSkills) {
+
+        String required = normalizeSkill(requiredSkill);
+
+        for (String candidate : candidateSkills) {
+
+            String candidateNormalized =
+                    normalizeSkill(candidate);
+
+            // Exact match
+            if (required.equals(candidateNormalized)) {
+                return true;
+            }
+
+            // Common variations
+            if (required.equals("javascript")
+                    && candidateNormalized.equals("js")) {
+                return true;
+            }
+
+            if (required.equals("python")
+                    && candidateNormalized.equals("python3")) {
+                return true;
+            }
+
+            if (required.equals("react")
+                    && candidateNormalized.equals("reactjs")) {
+                return true;
+            }
+
+            if (required.equals("nodejs")
+                    && candidateNormalized.equals("node")) {
+                return true;
+            }
+
+            if (required.equals("springboot")
+                    && candidateNormalized.equals("spring")) {
+                return true;
+            }
+
+            if (required.equals("machinelearning")
+                    && candidateNormalized.equals("ml")) {
+                return true;
+            }
+
+            if (required.equals("deeplearning")
+                    && candidateNormalized.equals("dl")) {
+                return true;
+            }
+
+            if (required.equals("computervision")
+                    && candidateNormalized.equals("cv")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    // -----------------------------------------
+    // NORMALIZE SKILL
+    // -----------------------------------------
+
+    private String normalizeSkill(String skill) {
+
+        if (skill == null) {
+            return "";
+        }
+
+        return skill
+                .toLowerCase()
+                .trim()
+                .replace(".", "")
+                .replace("-", "")
+                .replace("_", "")
+                .replace(" ", "");
+    }
+
+
+    // -----------------------------------------
+    // CONVERT DATABASE STRING TO SET
+    // -----------------------------------------
 
     private Set<String> convertToSet(String skills) {
 
@@ -117,11 +215,10 @@ public class JobMatchingService {
 
         for (String skill : skillArray) {
 
-            String normalized =
-                    skill.trim().toLowerCase();
+            String cleaned = skill.trim();
 
-            if (!normalized.isEmpty()) {
-                result.add(normalized);
+            if (!cleaned.isEmpty()) {
+                result.add(cleaned);
             }
         }
 
