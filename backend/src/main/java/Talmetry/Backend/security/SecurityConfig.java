@@ -49,6 +49,8 @@ public class SecurityConfig {
                     "/api/applications/**"
                 ).permitAll()
 
+                .requestMatchers("/api/interviews/**").permitAll()
+
                 // CORS preflight
                 .requestMatchers(
                     HttpMethod.OPTIONS,

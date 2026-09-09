@@ -1,0 +1,190 @@
+.applications-page {
+  min-height: 100vh;
+  padding: 40px;
+  background: #eef2ff;
+}
+
+.applications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.applications-header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #111827;
+}
+
+.applications-header p {
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+.browse-jobs-btn,
+.view-job-btn {
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.browse-jobs-btn {
+  padding: 12px 20px;
+  background: #4f46e5;
+  color: white;
+}
+
+.browse-jobs-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.application-card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.application-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.company-logo {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.application-info h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.company-name {
+  margin: 6px 0;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.job-meta {
+  display: flex;
+  gap: 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.application-side {
+  text-align: right;
+  min-width: 150px;
+}
+
+.application-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.applied-date {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 8px 0 12px;
+}
+
+.view-job-btn {
+  padding: 9px 16px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.view-job-btn:hover {
+  background: #e5e7eb;
+}
+
+.applications-state {
+  background: white;
+  border-radius: 18px;
+  padding: 70px 30px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.05);
+}
+
+.applications-state h2,
+.applications-state h3 {
+  color: #111827;
+}
+
+.applications-state p {
+  color: #6b7280;
+  max-width: 500px;
+  margin: 10px auto 25px;
+}
+
+.empty-icon {
+  font-size: 45px;
+  margin-bottom: 10px;
+}
+
+.error-state button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 9px;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .applications-page {
+    padding: 20px;
+  }
+
+  .applications-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .application-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .application-side {
+    text-align: left;
+    width: 100%;
+  }
+
+  .job-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

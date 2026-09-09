@@ -8,6 +8,8 @@ import MyProfile from "./pages/MyProfile";
 import Resume from "./pages/Resume";
 import RecommendedJobs from "./pages/RecommendedJobs";
 import JobDetails from "./pages/JobDetails";
+import Applications from "./pages/Applications";
+import AIInterview from "./pages/AIInterview";
 
 function Home() {
   return (
@@ -150,6 +152,8 @@ function App() {
           path="/job/:id"
           element={<JobDetails />}
         />
+        <Route path="/applications" element={<Applications />} />
+        <Route path="/ai-interview" element={<AIInterview />} />
       </Routes>
     </BrowserRouter>
   );

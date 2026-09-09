@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function CandidateDashboard() {
@@ -7,7 +7,121 @@ function CandidateDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const [applicationCount, setApplicationCount] = useState(0);
+  const [recentApplications, setRecentApplications] = useState([]);
+  const [matchedJobsCount, setMatchedJobsCount] = useState(0);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const [profileSkills, setProfileSkills] = useState([]);
+  const [profileCompletion, setProfileCompletion] = useState(0);
+  useEffect(() => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
 
+  const token = user.token;
+
+  // Fetch applications
+  fetch(`http://localhost:8080/api/applications/user/${user.id}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch applications");
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+      setApplicationCount(data.length);
+
+      const sortedApplications = [...data].sort((a, b) => {
+        return (
+          new Date(b.appliedAt || 0) -
+          new Date(a.appliedAt || 0)
+        );
+      });
+
+      setRecentApplications(sortedApplications.slice(0, 3));
+    })
+    .catch((error) => {
+      console.error("Application fetch error:", error);
+    });
+
+  // Fetch recommended jobs
+  fetch(`http://localhost:8080/api/jobs/recommended/${user.id}`, {
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch recommended jobs");
+      }
+
+      return response.json();
+    })
+   .then((data) => {
+  setMatchedJobsCount(data.length);
+  setRecommendedJobs(data);
+    })
+    .catch((error) => {
+      console.error("Recommended jobs error:", error);
+    });
+
+      // Fetch candidate profile
+  fetch(`http://localhost:8080/api/candidate/profile/${user.id}`, {
+    headers: {
+      Authorization: `Bearer ${user.token}`,
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+  // Skills
+  if (data.skills) {
+    const skills = data.skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter((skill) => skill.length > 0);
+
+    setProfileSkills(skills);
+  } else {
+    setProfileSkills([]);
+  }
+
+  // Profile completion
+  const fields = [
+    data.phone,
+    data.location,
+    data.education,
+    data.experience,
+    data.skills,
+    data.github,
+    data.linkedin,
+  ];
+
+  const completedFields = fields.filter(
+    (field) => field && field.trim().length > 0
+  ).length;
+
+  const completion = Math.round(
+    (completedFields / fields.length) * 100
+  );
+
+  setProfileCompletion(completion);
+})
+    .catch((error) => {
+      console.error("Profile skills error:", error);
+      setProfileSkills([]);
+    });
+
+}, [navigate, user?.id, user?.token]);
   const menuItems = [
     "Dashboard",
     "My Profile",
@@ -90,7 +204,6 @@ function CandidateDashboard() {
 
       </aside>
 
-
       {/* Main Content */}
       <main className="dashboard-main">
 
@@ -118,45 +231,41 @@ function CandidateDashboard() {
 
         </header>
 
-
         {/* Stats */}
         <section className="dashboard-stats">
 
           <div className="dashboard-stat-card">
             <span>Profile Completion</span>
 
-            <strong>72%</strong>
+            <strong>{profileCompletion}%</strong>
 
             <div className="progress-bar">
               <div
-                className="progress-fill"
-                style={{ width: "72%" }}
+                  className="progress-fill"
+                  style={{ width: `${profileCompletion}%` }}
               ></div>
             </div>
           </div>
 
-
           <div className="dashboard-stat-card">
             <span>Jobs Matched</span>
 
-            <strong>24</strong>
+            <strong>{matchedJobsCount}</strong>
 
             <small>
               Based on your skills
             </small>
           </div>
 
-
           <div className="dashboard-stat-card">
             <span>Applications</span>
 
-            <strong>8</strong>
+            <strong>{applicationCount}</strong>
 
             <small>
               2 interviews scheduled
             </small>
           </div>
-
 
           <div className="dashboard-stat-card">
             <span>AI Interview Score</span>
@@ -169,7 +278,6 @@ function CandidateDashboard() {
           </div>
 
         </section>
-
 
         {/* Recommended Jobs + Skills */}
         <section className="dashboard-grid">
@@ -199,107 +307,43 @@ function CandidateDashboard() {
 
             </div>
 
+            {recommendedJobs.length === 0 ? (
+  <p>No matching jobs found.</p>
+) : (
+  recommendedJobs.slice(0, 3).map((job) => (
+    <div className="job-item" key={job.id}>
 
-            <div className="job-item">
+      <div className="job-icon">
+        {job.company?.charAt(0).toUpperCase() || "J"}
+      </div>
 
-              <div className="job-icon">
-                J
-              </div>
+      <div className="job-info">
+        <h3>
+          {job.title}
+        </h3>
 
-              <div className="job-info">
+        <p>
+          {job.company} • {job.location}
+        </p>
+      </div>
 
-                <h3>
-                  Java Backend Developer
-                </h3>
+      <div className="match-score">
+        <strong>
+          {job.matchScore ?? 0}%
+        </strong>
 
-                <p>
-                  TechNova Solutions • Remote
-                </p>
+        <span>
+          Match
+        </span>
+      </div>
 
-              </div>
-
-              <div className="match-score">
-
-                <strong>
-                  94%
-                </strong>
-
-                <span>
-                  Match
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div className="job-item">
-
-              <div className="job-icon">
-                A
-              </div>
-
-              <div className="job-info">
-
-                <h3>
-                  Full Stack Developer
-                </h3>
-
-                <p>
-                  Innovate Labs • Bangalore
-                </p>
-
-              </div>
-
-              <div className="match-score">
-
-                <strong>
-                  89%
-                </strong>
-
-                <span>
-                  Match
-                </span>
-
-              </div>
+    </div>
+  ))
+)}
 
             </div>
 
-
-            <div className="job-item">
-
-              <div className="job-icon">
-                S
-              </div>
-
-              <div className="job-info">
-
-                <h3>
-                  Software Engineer
-                </h3>
-
-                <p>
-                  Smart Systems • Noida
-                </p>
-
-              </div>
-
-              <div className="match-score">
-
-                <strong>
-                  84%
-                </strong>
-
-                <span>
-                  Match
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
+         
 
           {/* Skills */}
           <div className="dashboard-card">
@@ -307,7 +351,6 @@ function CandidateDashboard() {
             <div className="card-heading">
 
               <div>
-
                 <h2>
                   Your Skills
                 </h2>
@@ -315,25 +358,23 @@ function CandidateDashboard() {
                 <p>
                   Skills detected from your profile
                 </p>
-
               </div>
 
             </div>
 
+           <div className="skills-container">
 
-            <div className="skills-container">
+  {profileSkills.length === 0 ? (
+    <span>No skills added yet</span>
+  ) : (
+    profileSkills.map((skill, index) => (
+      <span key={index}>
+        {skill}
+      </span>
+    ))
+  )}
 
-              <span>Java</span>
-              <span>JavaScript</span>
-              <span>Python</span>
-              <span>React</span>
-              <span>Spring Boot</span>
-              <span>SQL</span>
-              <span>Git</span>
-
-            </div>
-
-
+</div>
             <button
               className="secondary-button"
               onClick={() =>
@@ -347,7 +388,6 @@ function CandidateDashboard() {
 
         </section>
 
-
         {/* Applications + AI Interview */}
         <section className="dashboard-grid">
 
@@ -357,7 +397,6 @@ function CandidateDashboard() {
             <div className="card-heading">
 
               <div>
-
                 <h2>
                   Recent Applications
                 </h2>
@@ -365,7 +404,6 @@ function CandidateDashboard() {
                 <p>
                   Your latest job applications
                 </p>
-
               </div>
 
               <button
@@ -378,71 +416,52 @@ function CandidateDashboard() {
 
             </div>
 
+            {/* Real Applications */}
+            {recentApplications.length === 0 ? (
 
-            <div className="application-row">
+              <p>
+                No applications yet.
+              </p>
 
-              <div>
+            ) : (
 
-                <h3>
-                  Backend Developer
-                </h3>
+              recentApplications.map((application) => (
 
-                <p>
-                  TechNova Solutions
-                </p>
+                <div
+                  className="application-row"
+                  key={application.id}
+                >
 
-              </div>
+                  <div>
 
-              <span className="status interview">
-                Interview
-              </span>
+                    <h3>
+                      {application.job?.title ||
+                        "Job Position"}
+                    </h3>
 
-            </div>
+                    <p>
+                      {application.job?.company ||
+                        "Company"}
+                    </p>
 
+                  </div>
 
-            <div className="application-row">
+                  <span
+                    className={`status ${
+                      application.status?.toLowerCase() ||
+                      "applied"
+                    }`}
+                  >
+                    {application.status || "APPLIED"}
+                  </span>
 
-              <div>
+                </div>
 
-                <h3>
-                  Software Engineer
-                </h3>
+              ))
 
-                <p>
-                  CloudWorks
-                </p>
-
-              </div>
-
-              <span className="status review">
-                Under Review
-              </span>
-
-            </div>
-
-
-            <div className="application-row">
-
-              <div>
-
-                <h3>
-                  React Developer
-                </h3>
-
-                <p>
-                  Digital Labs
-                </p>
-
-              </div>
-
-              <span className="status applied">
-                Applied
-              </span>
-
-            </div>
+            )}
 
           </div>
-
 
           {/* AI Interview */}
           <div className="dashboard-card ai-interview-card">
