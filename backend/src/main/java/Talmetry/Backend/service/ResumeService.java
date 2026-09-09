@@ -64,4 +64,25 @@ public class ResumeService {
 
         return resumeRepository.save(resume);
     }
+    public Resume saveAnalysis(
+        Long resumeId,
+        Integer atsScore,
+        String extractedSkills,
+        String strengths,
+        String weaknesses,
+        String suggestions) {
+
+    Resume resume = resumeRepository.findById(resumeId)
+            .orElseThrow(() ->
+                    new RuntimeException("Resume not found")
+            );
+
+    resume.setAtsScore(atsScore);
+    resume.setExtractedSkills(extractedSkills);
+    resume.setStrengths(strengths);
+    resume.setWeaknesses(weaknesses);
+    resume.setSuggestions(suggestions);
+
+    return resumeRepository.save(resume);
+}
 }

@@ -21,11 +21,20 @@ public class CorsConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type")
+                List.of(
+                        "Authorization",
+                        "Content-Type"
+                )
         );
 
         configuration.setAllowCredentials(true);
@@ -33,7 +42,10 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }

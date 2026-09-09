@@ -258,6 +258,30 @@ setAnalysis(normalizeAnalysis(analysisData));
 
     setAnalysis(normalizedData);
 
+    const saveResponse = await fetch(
+  `http://localhost:8080/api/candidate/resume/analysis/${uploadedResume.id}`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${user.token}`,
+    },
+    body: JSON.stringify({
+      atsScore: normalizedData.atsScore,
+      extractedSkills: normalizedData.extractedSkills.join(", "),
+      strengths: normalizedData.strengths.join(", "),
+      weaknesses: normalizedData.weaknesses.join(", "),
+      suggestions: normalizedData.suggestions.join(", "),
+    }),
+  }
+);
+
+if (!saveResponse.ok) {
+  console.warn("AI analysis generated but could not be saved.");
+} else {
+  console.log("AI analysis saved successfully.");
+}
+
     const hasResult =
       normalizedData.atsScore > 0 ||
       normalizedData.extractedSkills.length > 0 ||

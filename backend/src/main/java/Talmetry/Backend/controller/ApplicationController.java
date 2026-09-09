@@ -41,6 +41,16 @@ public class ApplicationController {
         );
     }
 
+    // Get all applicants for a job
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<List<Application>> getJobApplications(
+            @PathVariable Long jobId) {
+
+        return ResponseEntity.ok(
+                applicationService.getJobApplications(jobId)
+        );
+    }
+
     // Get application by ID
     @GetMapping("/{id}")
     public ResponseEntity<Application> getApplicationById(
@@ -49,5 +59,17 @@ public class ApplicationController {
         return ResponseEntity.ok(
                 applicationService.getApplicationById(id)
         );
+    }
+
+    // Update application status
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Application> updateApplicationStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+
+        Application application =
+                applicationService.updateApplicationStatus(id, status);
+
+        return ResponseEntity.ok(application);
     }
 }

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader
 from docx import Document
 import os
@@ -12,7 +13,13 @@ from PIL import Image
 
 
 app = FastAPI(title="Talmetry AI Service")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -357,4 +364,169 @@ async def analyze_resume(file: UploadFile = File(...)):
         "fileName": file.filename,
         "textLength": len(resume_text),
         **analysis
+    }
+
+    # -----------------------------
+# AI INTERVIEW EVALUATION
+# -----------------------------
+
+@app.post("/api/evaluate-interview")
+async def evaluate_interview(data: dict):
+
+    answers = data.get("answers", [])
+
+    if not answers:
+        return {
+            "error": "No interview answers provided"
+        }
+
+    # Basic evaluation for now
+    total_score = 0
+    technical_score = 0
+    communication_score = 0
+    problem_solving_score = 0
+
+    evaluated_answers = []
+
+    for item in answers:
+
+        question = item.get("question", "")
+        answer = item.get("answer", "").strip()
+
+        if not answer:
+            continue
+
+        answer_length = len(answer)
+
+        # Basic answer quality
+        if answer_length >= 300:
+            answer_score = 90
+        elif answer_length >= 150:
+            answer_score = 80
+        elif answer_length >= 80:
+            answer_score = 70
+        else:
+            answer_score = 60
+
+        # Simple technical keyword check
+        technical_keywords = [
+            "java",
+            "python",
+            "api",
+            "sql",
+            "spring",
+            "database",
+            "react",
+            "authentication",
+            "authorization",
+            "project",
+            "algorithm"
+        ]
+
+        answer_lower = answer.lower()
+
+        keyword_count = sum(
+            1
+            for keyword in technical_keywords
+            if keyword in answer_lower
+        )
+
+        if keyword_count >= 3:
+            answer_score += 5
+
+        answer_score = min(answer_score, 100)
+
+        technical_score += answer_score
+
+        evaluated_answers.append({
+            "question": question,
+            "answer": answer,
+            "score": answer_score
+        })
+
+    question_count = len(evaluated_answers)
+
+    if question_count == 0:
+        return {
+            "error": "No valid answers found"
+        }
+
+    # Average technical score
+    technical_score = round(
+        technical_score / question_count
+    )
+
+    # Temporary communication evaluation
+    communication_score = min(
+        100,
+        technical_score + 2
+    )
+
+    # Temporary problem solving evaluation
+    problem_solving_score = min(
+        100,
+        technical_score + 1
+    )
+
+    # Overall score
+    overall_score = round(
+        (
+            technical_score
+            + communication_score
+            + problem_solving_score
+        ) / 3
+    )
+
+    strengths = []
+
+    if technical_score >= 80:
+        strengths.append(
+            "Good technical understanding"
+        )
+
+    if communication_score >= 80:
+        strengths.append(
+            "Clear communication"
+        )
+
+    if problem_solving_score >= 80:
+        strengths.append(
+            "Good problem-solving approach"
+        )
+
+    if not strengths:
+        strengths.append(
+            "Shows basic understanding of technical concepts"
+        )
+
+    areas_to_improve = []
+
+    if technical_score < 80:
+        areas_to_improve.append(
+            "Improve technical depth in answers"
+        )
+
+    if communication_score < 80:
+        areas_to_improve.append(
+            "Improve clarity and explanation"
+        )
+
+    if problem_solving_score < 80:
+        areas_to_improve.append(
+            "Explain problem-solving steps in more detail"
+        )
+
+    if not areas_to_improve:
+        areas_to_improve.append(
+            "Add more real-world examples to your answers"
+        )
+
+    return {
+        "score": overall_score,
+        "technicalScore": technical_score,
+        "communicationScore": communication_score,
+        "problemSolvingScore": problem_solving_score,
+        "strengths": strengths,
+        "areasToImprove": areas_to_improve,
+        "evaluatedAnswers": evaluated_answers
     }

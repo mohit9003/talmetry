@@ -10,7 +10,12 @@ import RecommendedJobs from "./pages/RecommendedJobs";
 import JobDetails from "./pages/JobDetails";
 import Applications from "./pages/Applications";
 import AIInterview from "./pages/AIInterview";
-
+import InterviewHistory from "./pages/InterviewHistory";
+import RecruiterDashboard from "./pages/RecruiterDashboard";
+import CreateJob from "./pages/CreateJob";
+import ManageJobs from "./pages/ManageJobs";
+import Applicants from "./pages/Applicants";
+import CandidateDetails from "./pages/CandidateDetails";
 function Home() {
   return (
     <div className="app">
@@ -154,6 +159,30 @@ function App() {
         />
         <Route path="/applications" element={<Applications />} />
         <Route path="/ai-interview" element={<AIInterview />} />
+        <Route
+              path="/interview-history"
+              element={<InterviewHistory />}
+        />
+        <Route
+         path="/recruiter-dashboard"
+          element={<RecruiterDashboard />}
+        />
+        <Route
+        path="/recruiter/create-job"
+        element={<CreateJob />}
+        />
+        <Route
+        path="/recruiter/jobs"
+        element={<ManageJobs />}
+        />
+        <Route
+        path="/recruiter/applicants"
+        element={<Applicants />}
+        />
+        <Route
+        path="/recruiter/candidate/:id"
+        element={<CandidateDetails />}
+        />
       </Routes>
     </BrowserRouter>
   );

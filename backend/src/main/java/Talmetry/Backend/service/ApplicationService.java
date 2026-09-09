@@ -3,6 +3,7 @@ package Talmetry.Backend.service;
 import Talmetry.Backend.entity.Application;
 import Talmetry.Backend.entity.Job;
 import Talmetry.Backend.entity.User;
+
 import Talmetry.Backend.repository.ApplicationRepository;
 import Talmetry.Backend.repository.JobRepository;
 import Talmetry.Backend.repository.UserRepository;
@@ -70,6 +71,12 @@ public class ApplicationService {
         return applicationRepository.findByUserId(userId);
     }
 
+    // Get all applicants for a job
+    public List<Application> getJobApplications(Long jobId) {
+
+        return applicationRepository.findByJobId(jobId);
+    }
+
     // Get application by ID
     public Application getApplicationById(Long id) {
 
@@ -77,5 +84,23 @@ public class ApplicationService {
                 .orElseThrow(() ->
                         new RuntimeException("Application not found")
                 );
+    }
+
+    // Update application status
+    public Application updateApplicationStatus(
+            Long applicationId,
+            String status) {
+
+        Application application =
+                applicationRepository.findById(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Application not found"
+                                )
+                        );
+
+        application.setStatus(status.toUpperCase());
+
+        return applicationRepository.save(application);
     }
 }

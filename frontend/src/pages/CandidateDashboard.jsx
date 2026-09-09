@@ -129,6 +129,7 @@ function CandidateDashboard() {
     "Recommended Jobs",
     "Applications",
     "AI Interview",
+    "Interview History",
   ];
 
   const handleMenuClick = (item) => {
@@ -157,6 +158,10 @@ function CandidateDashboard() {
 
       case "AI Interview":
         navigate("/ai-interview");
+        break;
+
+        case "Interview History":
+        navigate("/interview-history");
         break;
 
       default:

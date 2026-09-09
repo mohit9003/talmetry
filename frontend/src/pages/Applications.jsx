@@ -154,12 +154,18 @@ function Applications() {
                     : "Recently"}
                 </p>
 
-                <button
-                  className="view-job-btn"
-                  onClick={() => handleViewJob(application.job?.id)}
-                >
-                  View Job
-                </button>
+               <button
+  className="view-candidate-btn"
+  onClick={() => {
+    if (candidate?.id) {
+      navigate(`/recruiter/candidate/${candidate.id}`);
+    } else {
+      alert("Candidate ID not available");
+    }
+  }}
+>
+  View Candidate
+</button>
 
               </div>
 

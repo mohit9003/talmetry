@@ -32,14 +32,15 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data);
+        setMessage(
+          typeof data === "string"
+            ? data
+            : data.message || "Login failed."
+        );
         return;
       }
 
-      // Store logged-in user
-      localStorage.setItem("user", JSON.stringify(data));
-
-      // Check selected role
+      // Check whether selected role matches account role
       if (data.role !== role) {
         setMessage(
           `This account is registered as ${data.role.toLowerCase()}.`
@@ -47,18 +48,24 @@ function Login() {
         return;
       }
 
+      // Store logged-in user
+      localStorage.setItem("user", JSON.stringify(data));
+
       setMessage("Login successful!");
 
-      // Temporary redirect
-     setTimeout(() => {
-  if (data.role === "CANDIDATE") {
-    navigate("/candidate-dashboard");
-  } else {
-    navigate("/");
-  }
-}, 800);
+      // Redirect according to actual account role
+      setTimeout(() => {
+        if (data.role === "CANDIDATE") {
+          navigate("/candidate-dashboard");
+        } else if (data.role === "RECRUITER") {
+          navigate("/recruiter-dashboard");
+        } else {
+          navigate("/");
+        }
+      }, 500);
 
     } catch (error) {
+      console.error("Login error:", error);
       setMessage("Backend server is not running.");
     }
   };
@@ -69,23 +76,39 @@ function Login() {
 
         <h1>Welcome Back</h1>
 
-        <p>Login to continue with Talmetry.</p>
+        <p>
+          Login to continue with Talmetry.
+        </p>
 
         {/* Role Selection */}
         <div className="role-selection">
 
           <button
             type="button"
-            className={role === "CANDIDATE" ? "active" : ""}
-            onClick={() => setRole("CANDIDATE")}
+            className={
+              role === "CANDIDATE"
+                ? "active"
+                : ""
+            }
+            onClick={() => {
+              setRole("CANDIDATE");
+              setMessage("");
+            }}
           >
             Candidate
           </button>
 
           <button
             type="button"
-            className={role === "RECRUITER" ? "active" : ""}
-            onClick={() => setRole("RECRUITER")}
+            className={
+              role === "RECRUITER"
+                ? "active"
+                : ""
+            }
+            onClick={() => {
+              setRole("RECRUITER");
+              setMessage("");
+            }}
           >
             Recruiter
           </button>
@@ -95,11 +118,14 @@ function Login() {
         {/* Login Form */}
         <form onSubmit={handleSubmit}>
 
+          {/* Email */}
           <input
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
             required
           />
 
@@ -107,26 +133,39 @@ function Login() {
           <div className="password-wrapper">
 
             <input
-              type={showPassword ? "text" : "password"}
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               required
             />
 
             <button
               type="button"
               className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() =>
+                setShowPassword(!showPassword)
+              }
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword
+                ? "Hide"
+                : "Show"}
             </button>
 
           </div>
 
+          {/* Login Button */}
           <button type="submit">
             Login as{" "}
-            {role === "CANDIDATE" ? "Candidate" : "Recruiter"}
+            {role === "CANDIDATE"
+              ? "Candidate"
+              : "Recruiter"}
           </button>
 
         </form>
@@ -140,14 +179,20 @@ function Login() {
 
         {/* Register Link */}
         <div className="auth-switch">
-          <span>Don't have an account?</span>
+
+          <span>
+            Don't have an account?
+          </span>
 
           <button
             type="button"
-            onClick={() => navigate("/register")}
+            onClick={() =>
+              navigate("/register")
+            }
           >
             Create Account
           </button>
+
         </div>
 
       </div>

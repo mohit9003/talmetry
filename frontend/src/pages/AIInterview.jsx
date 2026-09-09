@@ -14,8 +14,12 @@ function AIInterview() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answer, setAnswer] = useState("");
   const [answers, setAnswers] = useState([]);
+
   const [completed, setCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // AI evaluation result
+  const [evaluation, setEvaluation] = useState(null);
 
   const questions = [
     "Tell us about yourself and your technical experience.",
@@ -29,6 +33,8 @@ function AIInterview() {
     "Describe one technical project you have worked on and the challenges you faced.",
   ];
 
+  // ================= START INTERVIEW =================
+
   const handleStartInterview = () => {
     if (!role) {
       alert("Please select an interview role.");
@@ -38,9 +44,13 @@ function AIInterview() {
     setStarted(true);
   };
 
+  // ================= BACK =================
+
   const handleBack = () => {
     navigate("/candidate-dashboard");
   };
+
+  // ================= NEXT QUESTION =================
 
   const handleNextQuestion = async () => {
     if (!answer.trim()) {
@@ -48,6 +58,7 @@ function AIInterview() {
       return;
     }
 
+    // Save current answer
     const updatedAnswers = [
       ...answers,
       {
@@ -59,7 +70,8 @@ function AIInterview() {
     setAnswers(updatedAnswers);
     setAnswer("");
 
-    // Move to next question
+    // ================= MOVE TO NEXT QUESTION =================
+
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       return;
@@ -70,21 +82,68 @@ function AIInterview() {
     setSaving(true);
 
     try {
+      // -----------------------------------------
+      // STEP 1: Send answers to Python AI Service
+      // -----------------------------------------
+
+      const aiResponse = await fetch(
+        "http://127.0.0.1:8000/api/evaluate-interview",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            answers: updatedAnswers,
+          }),
+        }
+      );
+
+      if (!aiResponse.ok) {
+        throw new Error("AI evaluation failed");
+      }
+
+      const aiData = await aiResponse.json();
+
+      console.log("AI Evaluation:", aiData);
+
+      // Check Python response
+      if (aiData.error) {
+        throw new Error(aiData.error);
+      }
+
+      // Save AI result in frontend state
+      setEvaluation(aiData);
+
+      // -----------------------------------------
+      // STEP 2: Save result in Java Backend
+      // -----------------------------------------
+
       const response = await fetch(
         "http://localhost:8080/api/interviews/create",
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
+
           body: new URLSearchParams({
             userId: String(user.id),
+
             role: role,
+
             difficulty: difficulty,
-            score: "86",
-            technicalScore: "88",
-            communicationScore: "82",
-            problemSolvingScore: "87",
+
+            score: String(aiData.score),
+
+            technicalScore: String(aiData.technicalScore),
+
+            communicationScore: String(aiData.communicationScore),
+
+            problemSolvingScore: String(
+              aiData.problemSolvingScore
+            ),
           }),
         }
       );
@@ -93,30 +152,47 @@ function AIInterview() {
         throw new Error("Failed to save interview");
       }
 
-      const data = await response.json();
+      const savedInterview = await response.json();
 
-      console.log("Interview saved successfully:", data);
+      console.log(
+        "Interview saved successfully:",
+        savedInterview
+      );
+
+      // -----------------------------------------
+      // STEP 3: Show result screen
+      // -----------------------------------------
 
       setCompleted(true);
+
     } catch (error) {
-      console.error("Interview save error:", error);
+      console.error(
+        "Interview evaluation/save error:",
+        error
+      );
 
       alert(
-        "Interview completed, but the result could not be saved. Please check that the backend is running."
+        "Interview result could not be generated. Please make sure both AI Service and backend are running."
       );
     } finally {
       setSaving(false);
     }
   };
 
+  // ================= RETAKE =================
+
   const handleRetake = () => {
     setCurrentQuestion(0);
     setAnswer("");
     setAnswers([]);
+    setEvaluation(null);
+
     setCompleted(false);
     setStarted(false);
     setSaving(false);
   };
+
+  // ================= LOGIN CHECK =================
 
   if (!user) {
     navigate("/login");
@@ -125,9 +201,11 @@ function AIInterview() {
 
   // ================= RESULT SCREEN =================
 
-  if (completed) {
+  if (completed && evaluation) {
     return (
       <div className="ai-interview-page">
+
+        {/* Header */}
 
         <div className="ai-interview-header">
 
@@ -141,7 +219,8 @@ function AIInterview() {
             </h1>
 
             <p>
-              Your mock interview performance has been evaluated.
+              Your mock interview performance has been
+              evaluated by Talmetry AI.
             </p>
           </div>
 
@@ -154,6 +233,9 @@ function AIInterview() {
 
         </div>
 
+
+        {/* Result Card */}
+
         <div className="interview-result-card">
 
           <div className="result-icon">
@@ -165,36 +247,68 @@ function AIInterview() {
           </h1>
 
           <p className="result-subtitle">
-            Great job! Here is your Talmetry interview performance.
+            Great job! Here is your Talmetry AI interview
+            performance.
           </p>
 
+
+          {/* Overall Score */}
+
           <div className="score-circle">
-            <span>86</span>
-            <small>/100</small>
+            <span>
+              {evaluation.score}
+            </span>
+
+            <small>
+              /100
+            </small>
           </div>
 
           <h2>
             Overall Score
           </h2>
 
+
+          {/* Score Grid */}
+
           <div className="result-grid">
 
             <div className="result-box">
-              <span>Technical</span>
-              <strong>88%</strong>
+              <span>
+                Technical
+              </span>
+
+              <strong>
+                {evaluation.technicalScore}%
+              </strong>
             </div>
 
-            <div className="result-box">
-              <span>Communication</span>
-              <strong>82%</strong>
-            </div>
 
             <div className="result-box">
-              <span>Problem Solving</span>
-              <strong>87%</strong>
+              <span>
+                Communication
+              </span>
+
+              <strong>
+                {evaluation.communicationScore}%
+              </strong>
+            </div>
+
+
+            <div className="result-box">
+              <span>
+                Problem Solving
+              </span>
+
+              <strong>
+                {evaluation.problemSolvingScore}%
+              </strong>
             </div>
 
           </div>
+
+
+          {/* Strengths */}
 
           <div className="feedback-section">
 
@@ -204,21 +318,32 @@ function AIInterview() {
 
             <ul>
 
-              <li>
-                Good understanding of technical concepts
-              </li>
+              {evaluation.strengths &&
+              evaluation.strengths.length > 0 ? (
 
-              <li>
-                Clear explanation of answers
-              </li>
+                evaluation.strengths.map(
+                  (strength, index) => (
+                    <li key={index}>
+                      {strength}
+                    </li>
+                  )
+                )
 
-              <li>
-                Strong project knowledge
-              </li>
+              ) : (
+
+                <li>
+                  Shows good understanding of
+                  technical concepts.
+                </li>
+
+              )}
 
             </ul>
 
           </div>
+
+
+          {/* Areas To Improve */}
 
           <div className="feedback-section">
 
@@ -228,21 +353,68 @@ function AIInterview() {
 
             <ul>
 
-              <li>
-                Give more detailed technical examples
-              </li>
+              {evaluation.areasToImprove &&
+              evaluation.areasToImprove.length > 0 ? (
 
-              <li>
-                Improve answer structure
-              </li>
+                evaluation.areasToImprove.map(
+                  (area, index) => (
+                    <li key={index}>
+                      {area}
+                    </li>
+                  )
+                )
 
-              <li>
-                Explain problem-solving steps more clearly
-              </li>
+              ) : (
+
+                <li>
+                  Continue improving technical depth
+                  and real-world examples.
+                </li>
+
+              )}
 
             </ul>
 
           </div>
+
+
+          {/* Answer Evaluation */}
+
+          {evaluation.evaluatedAnswers &&
+          evaluation.evaluatedAnswers.length > 0 && (
+
+            <div className="feedback-section">
+
+              <h3>
+                📊 Answer Evaluation
+              </h3>
+
+              <ul>
+
+                {evaluation.evaluatedAnswers.map(
+                  (item, index) => (
+
+                    <li key={index}>
+
+                      <strong>
+                        Q{index + 1}:
+                      </strong>{" "}
+
+                      {item.score}/100
+
+                    </li>
+
+                  )
+                )}
+
+              </ul>
+
+            </div>
+
+          )}
+
+
+          {/* Result Actions */}
 
           <div className="result-actions">
 
@@ -266,6 +438,7 @@ function AIInterview() {
       </div>
     );
   }
+
 
   // ================= MAIN SCREEN =================
 
@@ -292,6 +465,7 @@ function AIInterview() {
           </p>
 
         </div>
+
 
         <button
           className="back-dashboard-btn"
@@ -322,7 +496,10 @@ function AIInterview() {
             an AI-powered mock interview.
           </p>
 
+
           <div className="setup-form">
+
+            {/* Role */}
 
             <div className="setup-field">
 
@@ -332,7 +509,9 @@ function AIInterview() {
 
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) =>
+                  setRole(e.target.value)
+                }
               >
 
                 <option value="">
@@ -358,6 +537,9 @@ function AIInterview() {
               </select>
 
             </div>
+
+
+            {/* Difficulty */}
 
             <div className="setup-field">
 
@@ -390,6 +572,7 @@ function AIInterview() {
 
           </div>
 
+
           <button
             className="start-interview-btn"
             onClick={handleStartInterview}
@@ -397,9 +580,13 @@ function AIInterview() {
             Start AI Interview →
           </button>
 
+
+          {/* Features */}
+
           <div className="interview-features">
 
             <div>
+
               <strong>
                 AI Questions
               </strong>
@@ -407,9 +594,12 @@ function AIInterview() {
               <span>
                 Role-based questions
               </span>
+
             </div>
 
+
             <div>
+
               <strong>
                 Instant Feedback
               </strong>
@@ -417,9 +607,12 @@ function AIInterview() {
               <span>
                 Analyze your answers
               </span>
+
             </div>
 
+
             <div>
+
               <strong>
                 Final Score
               </strong>
@@ -427,6 +620,7 @@ function AIInterview() {
               <span>
                 Get your performance score
               </span>
+
             </div>
 
           </div>
@@ -438,6 +632,8 @@ function AIInterview() {
         /* ================= INTERVIEW ================= */
 
         <div className="interview-screen">
+
+          {/* Interview Top */}
 
           <div className="interview-top">
 
@@ -453,21 +649,28 @@ function AIInterview() {
 
             </div>
 
+
             <span className="difficulty-badge">
               {difficulty}
             </span>
 
           </div>
 
+
+          {/* Question Card */}
+
           <div className="question-card">
 
             <span className="question-number">
-              Question {currentQuestion + 1} of {questions.length}
+              Question {currentQuestion + 1} of{" "}
+              {questions.length}
             </span>
+
 
             <h2>
               {questions[currentQuestion]}
             </h2>
+
 
             <textarea
               placeholder="Type your answer here..."
@@ -479,6 +682,9 @@ function AIInterview() {
               disabled={saving}
             />
 
+
+            {/* Question Actions */}
+
             <div className="question-actions">
 
               <button
@@ -486,7 +692,9 @@ function AIInterview() {
                 onClick={() => {
 
                   if (!answer.trim()) {
-                    alert("Please enter an answer first.");
+                    alert(
+                      "Please enter an answer first."
+                    );
                     return;
                   }
 
@@ -498,6 +706,7 @@ function AIInterview() {
                 Save Answer
               </button>
 
+
               <button
                 className="primary-button"
                 onClick={handleNextQuestion}
@@ -505,8 +714,9 @@ function AIInterview() {
               >
 
                 {saving
-                  ? "Saving Interview..."
-                  : currentQuestion === questions.length - 1
+                  ? "Evaluating Interview..."
+                  : currentQuestion ===
+                    questions.length - 1
                   ? "Finish Interview"
                   : "Next Question →"}
 
@@ -516,9 +726,13 @@ function AIInterview() {
 
           </div>
 
+
+          {/* Interview Info */}
+
           <div className="interview-info">
 
             <div>
+
               <strong>
                 5
               </strong>
@@ -526,9 +740,12 @@ function AIInterview() {
               <span>
                 Total Questions
               </span>
+
             </div>
 
+
             <div>
+
               <strong>
                 {difficulty}
               </strong>
@@ -536,9 +753,12 @@ function AIInterview() {
               <span>
                 Difficulty
               </span>
+
             </div>
 
+
             <div>
+
               <strong>
                 AI
               </strong>
@@ -546,6 +766,7 @@ function AIInterview() {
               <span>
                 Evaluation
               </span>
+
             </div>
 
           </div>

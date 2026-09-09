@@ -1,0 +1,239 @@
+.create-job-page {
+  min-height: 100vh;
+  background: #eef2ff;
+  padding: 40px 55px;
+  color: #172033;
+}
+
+/* ================= HEADER ================= */
+
+.create-job-header {
+  max-width: 1000px;
+  margin: 0 auto 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.create-job-header h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 34px;
+}
+
+.create-job-header p:not(.dashboard-label) {
+  margin-top: 8px;
+  color: #64748b;
+}
+
+.back-dashboard-btn {
+  border: 1px solid #dbe1ea;
+  background: white;
+  padding: 11px 17px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back-dashboard-btn:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+/* ================= CARD ================= */
+
+.create-job-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+}
+
+/* ================= FORM HEADING ================= */
+
+.form-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 25px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+}
+
+.form-heading h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.form-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* ================= FORM ================= */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 21px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dbe1ea;
+  background: #f8fafc;
+  color: #172033;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  background: white;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* ================= MESSAGE ================= */
+
+.form-message {
+  padding: 12px 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-message.success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.form-message.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ================= ACTIONS ================= */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-btn,
+.create-job-btn {
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cancel-btn {
+  border: 1px solid #dbe1ea;
+  background: white;
+  color: #475569;
+}
+
+.create-job-btn {
+  border: none;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    #6366f1,
+    #7c3aed
+  );
+  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.2);
+}
+
+.create-job-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cancel-btn:disabled,
+.create-job-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 700px) {
+  .create-job-page {
+    padding: 25px 16px;
+  }
+
+  .create-job-header {
+    flex-direction: column;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .create-job-card {
+    padding: 22px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-btn,
+  .create-job-btn {
+    width: 100%;
+  }
+}

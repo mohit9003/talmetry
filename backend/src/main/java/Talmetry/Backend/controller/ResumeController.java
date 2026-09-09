@@ -71,6 +71,32 @@ public class ResumeController {
         }
     }
 
+    // Save AI resume analysis
+@PutMapping("/analysis/{resumeId}")
+public ResponseEntity<?> saveAnalysis(
+        @PathVariable Long resumeId,
+        @RequestBody ResumeAnalysisRequest request) {
+
+    try {
+
+        Resume resume = resumeService.saveAnalysis(
+                resumeId,
+                request.getAtsScore(),
+                request.getExtractedSkills(),
+                request.getStrengths(),
+                request.getWeaknesses(),
+                request.getSuggestions()
+        );
+
+        return ResponseEntity.ok(resume);
+
+    } catch (Exception e) {
+
+        return ResponseEntity.badRequest()
+                .body(e.getMessage());
+    }
+}
+
     // Open / download resume
    @GetMapping("/download/{userId}")
 public ResponseEntity<?> downloadResume(@PathVariable Long userId) {
@@ -120,6 +146,55 @@ public ResponseEntity<?> downloadResume(@PathVariable Long userId) {
 
         return ResponseEntity.internalServerError()
                 .body("Unable to open resume: " + e.getMessage());
+    }
+}
+
+public static class ResumeAnalysisRequest {
+
+    private Integer atsScore;
+    private String extractedSkills;
+    private String strengths;
+    private String weaknesses;
+    private String suggestions;
+
+    public Integer getAtsScore() {
+        return atsScore;
+    }
+
+    public void setAtsScore(Integer atsScore) {
+        this.atsScore = atsScore;
+    }
+
+    public String getExtractedSkills() {
+        return extractedSkills;
+    }
+
+    public void setExtractedSkills(String extractedSkills) {
+        this.extractedSkills = extractedSkills;
+    }
+
+    public String getStrengths() {
+        return strengths;
+    }
+
+    public void setStrengths(String strengths) {
+        this.strengths = strengths;
+    }
+
+    public String getWeaknesses() {
+        return weaknesses;
+    }
+
+    public void setWeaknesses(String weaknesses) {
+        this.weaknesses = weaknesses;
+    }
+
+    public String getSuggestions() {
+        return suggestions;
+    }
+
+    public void setSuggestions(String suggestions) {
+        this.suggestions = suggestions;
     }
 }
 }
