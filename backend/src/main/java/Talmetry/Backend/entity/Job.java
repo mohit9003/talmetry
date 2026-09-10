@@ -30,8 +30,18 @@ public class Job {
 
     private String status;
 
+    // ================= RECRUITER OWNER =================
+
+    @ManyToOne
+    @JoinColumn(name = "recruiter_id")
+    private User recruiter;
+
+    // ================= CONSTRUCTOR =================
+
     public Job() {
     }
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -111,5 +121,15 @@ public class Job {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    // ================= RECRUITER GETTER/SETTER =================
+
+    public User getRecruiter() {
+        return recruiter;
+    }
+
+    public void setRecruiter(User recruiter) {
+        this.recruiter = recruiter;
     }
 }

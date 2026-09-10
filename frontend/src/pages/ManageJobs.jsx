@@ -8,8 +8,15 @@ function ManageJobs() {
   const [user, setUser] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
+
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const [deletingId, setDeletingId] = useState(null);
+  const [editingJob, setEditingJob] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  // ================= INITIAL LOAD =================
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -19,26 +26,49 @@ function ManageJobs() {
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
+    try {
+      const parsedUser = JSON.parse(storedUser);
 
-    if (parsedUser.role !== "RECRUITER") {
-      navigate("/candidate-dashboard");
-      return;
+      if (parsedUser.role !== "RECRUITER") {
+        navigate("/candidate-dashboard");
+        return;
+      }
+
+      setUser(parsedUser);
+    } catch (err) {
+      localStorage.removeItem("user");
+      navigate("/login");
     }
-
-    setUser(parsedUser);
-    fetchJobs();
   }, [navigate]);
 
-  // ================= FETCH JOBS =================
+  useEffect(() => {
+    if (user?.token && user?.id) {
+      fetchJobs();
+    }
+  }, [user]);
+
+  // ================= FETCH RECRUITER JOBS =================
 
   const fetchJobs = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response = await fetch(
-        "http://localhost:8080/api/jobs"
+        `http://localhost:8080/api/jobs/recruiter/${user.id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
+
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("user");
+        navigate("/login");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch jobs");
@@ -49,7 +79,7 @@ function ManageJobs() {
       setJobs(data);
     } catch (error) {
       console.error("Jobs loading error:", error);
-      setMessage("Unable to load jobs.");
+      setError("Unable to load your jobs.");
     } finally {
       setLoading(false);
     }
@@ -59,43 +89,132 @@ function ManageJobs() {
 
   const handleDelete = async (jobId) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this job?"
+      "Are you sure you want to delete this job?\n\nThis action cannot be undone."
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setDeletingId(jobId);
       setMessage("");
+      setError("");
 
       const response = await fetch(
         `http://localhost:8080/api/jobs/${jobId}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         }
       );
 
+      if (response.status === 401 || response.status === 403) {
+        setError("You are not authorized to delete this job.");
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error("Failed to delete job");
+        const text = await response.text();
+        throw new Error(text || "Failed to delete job");
       }
 
       setJobs((previousJobs) =>
-        previousJobs.filter(
-          (job) => job.id !== jobId
-        )
+        previousJobs.filter((job) => job.id !== jobId)
       );
 
       setMessage("Job deleted successfully.");
 
     } catch (error) {
       console.error("Delete job error:", error);
-      setMessage(
-        "Unable to delete job. Please try again."
-      );
+      setError("Unable to delete job. Please try again.");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // ================= OPEN EDIT MODAL =================
+
+  const handleEdit = (job) => {
+    setMessage("");
+    setError("");
+
+    setEditingJob({
+      ...job,
+    });
+  };
+
+  // ================= EDIT INPUT =================
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditingJob((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  // ================= UPDATE JOB =================
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    if (!editingJob) return;
+
+    try {
+      setSaving(true);
+      setMessage("");
+      setError("");
+
+      const response = await fetch(
+        `http://localhost:8080/api/jobs/${editingJob.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            title: editingJob.title,
+            company: editingJob.company,
+            location: editingJob.location,
+            jobType: editingJob.jobType,
+            description: editingJob.description,
+            requiredSkills: editingJob.requiredSkills,
+            salary: editingJob.salary,
+            experience: editingJob.experience,
+            status: editingJob.status,
+          }),
+        }
+      );
+
+      if (response.status === 401 || response.status === 403) {
+        setError("You are not authorized to update this job.");
+        return;
+      }
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Failed to update job");
+      }
+
+      const updatedJob = await response.json();
+
+      setJobs((previousJobs) =>
+        previousJobs.map((job) =>
+          job.id === updatedJob.id ? updatedJob : job
+        )
+      );
+
+      setEditingJob(null);
+      setMessage("Job updated successfully.");
+
+    } catch (error) {
+      console.error("Update job error:", error);
+      setError("Unable to update job. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -110,6 +229,14 @@ function ManageJobs() {
     return null;
   }
 
+  const openJobs = jobs.filter(
+    (job) => job.status === "OPEN"
+  );
+
+  const closedJobs = jobs.filter(
+    (job) => job.status !== "OPEN"
+  );
+
   return (
     <div className="manage-jobs-page">
 
@@ -118,7 +245,6 @@ function ManageJobs() {
       <aside className="manage-sidebar">
 
         <div className="manage-logo">
-
           <div className="manage-logo-mark">
             T
           </div>
@@ -127,9 +253,7 @@ function ManageJobs() {
             <h2>Talmetry</h2>
             <span>Recruiter Portal</span>
           </div>
-
         </div>
-
 
         <nav className="manage-nav">
 
@@ -167,7 +291,6 @@ function ManageJobs() {
 
         </nav>
 
-
         <button
           className="manage-logout"
           onClick={handleLogout}
@@ -178,7 +301,6 @@ function ManageJobs() {
 
       </aside>
 
-
       {/* ================= MAIN ================= */}
 
       <main className="manage-main">
@@ -188,7 +310,6 @@ function ManageJobs() {
         <div className="manage-header">
 
           <div>
-
             <p className="dashboard-label">
               RECRUITER PORTAL
             </p>
@@ -200,9 +321,7 @@ function ManageJobs() {
             <p>
               Create, manage and track your job openings.
             </p>
-
           </div>
-
 
           <div className="manage-header-actions">
 
@@ -228,91 +347,67 @@ function ManageJobs() {
 
         </div>
 
-
-        {/* STATS */}
+        {/* ================= STATS ================= */}
 
         <div className="job-summary">
 
           <div className="summary-card">
-
-            <span>
-              Total Jobs
-            </span>
-
-            <strong>
-              {jobs.length}
-            </strong>
-
+            <span>Total Jobs</span>
+            <strong>{jobs.length}</strong>
           </div>
 
-
           <div className="summary-card">
-
-            <span>
-              Open Jobs
-            </span>
-
-            <strong>
-              {
-                jobs.filter(
-                  (job) => job.status === "OPEN"
-                ).length
-              }
-            </strong>
-
+            <span>Open Jobs</span>
+            <strong>{openJobs.length}</strong>
           </div>
 
-
           <div className="summary-card">
-
-            <span>
-              Closed Jobs
-            </span>
-
-            <strong>
-              {
-                jobs.filter(
-                  (job) => job.status !== "OPEN"
-                ).length
-              }
-            </strong>
-
+            <span>Closed Jobs</span>
+            <strong>{closedJobs.length}</strong>
           </div>
 
         </div>
 
-
-        {/* MESSAGE */}
+        {/* ================= MESSAGES ================= */}
 
         {message && (
-          <div className="manage-message">
-            {message}
+          <div className="manage-message success-message">
+            ✓ {message}
           </div>
         )}
 
+        {error && (
+          <div className="manage-message error-message">
+            ⚠ {error}
+          </div>
+        )}
 
-        {/* JOBS */}
+        {/* ================= JOB SECTION ================= */}
 
         <section className="jobs-section">
 
           <div className="jobs-section-header">
 
             <div>
-              <h2>
-                Your Job Postings
-              </h2>
+              <h2>Your Job Postings</h2>
 
               <p>
                 Manage your current job openings.
               </p>
             </div>
 
+            <span className="job-count">
+              {jobs.length} {jobs.length === 1 ? "Job" : "Jobs"}
+            </span>
+
           </div>
 
+          {/* LOADING */}
 
           {loading ? (
 
             <div className="jobs-empty">
+
               <div className="loading-spinner">
                 ⏳
               </div>
@@ -320,9 +415,16 @@ function ManageJobs() {
               <h3>
                 Loading jobs...
               </h3>
+
+              <p>
+                Fetching your job postings.
+              </p>
+
             </div>
 
           ) : jobs.length === 0 ? (
+
+            /* EMPTY */
 
             <div className="jobs-empty">
 
@@ -351,6 +453,8 @@ function ManageJobs() {
 
           ) : (
 
+            /* JOB GRID */
+
             <div className="jobs-grid">
 
               {jobs.map((job) => (
@@ -371,19 +475,11 @@ function ManageJobs() {
                       </div>
 
                       <div>
-
-                        <h3>
-                          {job.title}
-                        </h3>
-
-                        <p>
-                          {job.company}
-                        </p>
-
+                        <h3>{job.title}</h3>
+                        <p>{job.company}</p>
                       </div>
 
                     </div>
-
 
                     <span
                       className={
@@ -397,7 +493,6 @@ function ManageJobs() {
 
                   </div>
 
-
                   {/* LOCATION */}
 
                   <div className="job-location">
@@ -406,13 +501,11 @@ function ManageJobs() {
                     {job.jobType}
                   </div>
 
-
                   {/* DESCRIPTION */}
 
                   <p className="manage-job-description">
                     {job.description}
                   </p>
-
 
                   {/* DETAILS */}
 
@@ -433,7 +526,6 @@ function ManageJobs() {
                     </div>
 
                   </div>
-
 
                   {/* SKILLS */}
 
@@ -463,7 +555,6 @@ function ManageJobs() {
 
                   </div>
 
-
                   {/* ACTIONS */}
 
                   <div className="manage-job-actions">
@@ -474,7 +565,16 @@ function ManageJobs() {
                         navigate(`/job/${job.id}`)
                       }
                     >
-                      View Job
+                      👁 View
+                    </button>
+
+                    <button
+                      className="edit-job-btn"
+                      onClick={() =>
+                        handleEdit(job)
+                      }
+                    >
+                      ✏ Edit
                     </button>
 
                     <button
@@ -488,7 +588,7 @@ function ManageJobs() {
                     >
                       {deletingId === job.id
                         ? "Deleting..."
-                        : "Delete"}
+                        : "🗑 Delete"}
                     </button>
 
                   </div>
@@ -504,6 +604,204 @@ function ManageJobs() {
         </section>
 
       </main>
+
+      {/* ================= EDIT MODAL ================= */}
+
+      {editingJob && (
+
+        <div
+          className="edit-modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingJob(null);
+            }
+          }}
+        >
+
+          <div className="edit-modal">
+
+            <div className="edit-modal-header">
+
+              <div>
+                <p>RECRUITER PORTAL</p>
+                <h2>Edit Job</h2>
+              </div>
+
+              <button
+                className="modal-close"
+                onClick={() =>
+                  setEditingJob(null)
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+            <form onSubmit={handleUpdate}>
+
+              <div className="edit-form-grid">
+
+                <div className="edit-field">
+                  <label>Job Title</label>
+                  <input
+                    name="title"
+                    value={editingJob.title || ""}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+
+                <div className="edit-field">
+                  <label>Company</label>
+                  <input
+                    name="company"
+                    value={editingJob.company || ""}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+
+                <div className="edit-field">
+                  <label>Location</label>
+                  <input
+                    name="location"
+                    value={editingJob.location || ""}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+
+                <div className="edit-field">
+                  <label>Job Type</label>
+
+                  <select
+                    name="jobType"
+                    value={editingJob.jobType || ""}
+                    onChange={handleEditChange}
+                    required
+                  >
+                    <option value="">
+                      Select job type
+                    </option>
+
+                    <option value="Full Time">
+                      Full Time
+                    </option>
+
+                    <option value="Part Time">
+                      Part Time
+                    </option>
+
+                    <option value="Internship">
+                      Internship
+                    </option>
+
+                    <option value="Contract">
+                      Contract
+                    </option>
+                  </select>
+                </div>
+
+                <div className="edit-field">
+                  <label>Salary</label>
+                  <input
+                    name="salary"
+                    value={editingJob.salary || ""}
+                    onChange={handleEditChange}
+                    placeholder="e.g. 6-10 LPA"
+                  />
+                </div>
+
+                <div className="edit-field">
+                  <label>Experience</label>
+                  <input
+                    name="experience"
+                    value={editingJob.experience || ""}
+                    onChange={handleEditChange}
+                    placeholder="e.g. 0-2 Years"
+                  />
+                </div>
+
+                <div className="edit-field">
+                  <label>Status</label>
+
+                  <select
+                    name="status"
+                    value={editingJob.status || "OPEN"}
+                    onChange={handleEditChange}
+                  >
+                    <option value="OPEN">
+                      OPEN
+                    </option>
+
+                    <option value="CLOSED">
+                      CLOSED
+                    </option>
+                  </select>
+                </div>
+
+                <div className="edit-field full">
+                  <label>Required Skills</label>
+
+                  <input
+                    name="requiredSkills"
+                    value={
+                      editingJob.requiredSkills || ""
+                    }
+                    onChange={handleEditChange}
+                    placeholder="Java, Spring Boot, SQL, Git"
+                  />
+                </div>
+
+                <div className="edit-field full">
+                  <label>Job Description</label>
+
+                  <textarea
+                    name="description"
+                    value={
+                      editingJob.description || ""
+                    }
+                    onChange={handleEditChange}
+                    rows="6"
+                    required
+                  />
+                </div>
+
+              </div>
+
+              <div className="edit-modal-actions">
+
+                <button
+                  type="button"
+                  className="cancel-edit-btn"
+                  onClick={() =>
+                    setEditingJob(null)
+                  }
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="save-edit-btn"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving..."
+                    : "✓ Save Changes"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );

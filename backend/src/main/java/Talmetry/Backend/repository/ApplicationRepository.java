@@ -22,4 +22,7 @@ public interface ApplicationRepository
             Long userId,
             Long jobId
     );
+    long countByStatus(String status);
+
+    long countByJobId(Long jobId);
 }

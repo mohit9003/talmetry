@@ -1,9 +1,12 @@
 package Talmetry.Backend.controller;
 
 import Talmetry.Backend.entity.Job;
+import Talmetry.Backend.entity.User;
+import Talmetry.Backend.repository.UserRepository;
 import Talmetry.Backend.service.JobService;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,21 +17,43 @@ import java.util.List;
 public class JobController {
 
     private final JobService jobService;
+    private final UserRepository userRepository;
 
-    public JobController(JobService jobService) {
+    public JobController(
+            JobService jobService,
+            UserRepository userRepository
+    ) {
         this.jobService = jobService;
+        this.userRepository = userRepository;
     }
 
-    // Create a new job
+    // ================= CREATE JOB =================
+
     @PostMapping
-    public ResponseEntity<Job> createJob(@RequestBody Job job) {
+    public ResponseEntity<Job> createJob(
+            @RequestParam Long recruiterId,
+            @RequestBody Job job,
+            Authentication authentication
+    ) {
 
-        Job savedJob = jobService.createJob(job);
+        User recruiter = getLoggedInUser(authentication);
 
-        return ResponseEntity.ok(savedJob);
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Prevent recruiter from creating job for another recruiter
+        if (!recruiter.getId().equals(recruiterId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                jobService.createJob(recruiterId, job)
+        );
     }
 
-    // Get all jobs
+    // ================= GET ALL JOBS =================
+
     @GetMapping
     public ResponseEntity<List<Job>> getAllJobs() {
 
@@ -37,7 +62,8 @@ public class JobController {
         );
     }
 
-    // Get only open jobs
+    // ================= GET OPEN JOBS =================
+
     @GetMapping("/open")
     public ResponseEntity<List<Job>> getOpenJobs() {
 
@@ -46,25 +72,113 @@ public class JobController {
         );
     }
 
-    // Get job by ID
+    // ================= GET RECRUITER JOBS =================
+
+    @GetMapping("/recruiter/{recruiterId}")
+    public ResponseEntity<List<Job>> getRecruiterJobs(
+            @PathVariable Long recruiterId,
+            Authentication authentication
+    ) {
+
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Recruiter can only view their own jobs
+        if (!recruiter.getId().equals(recruiterId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                jobService.getRecruiterJobs(recruiterId)
+        );
+    }
+
+    // ================= GET JOB BY ID =================
+
     @GetMapping("/{id}")
     public ResponseEntity<Job> getJobById(
-            @PathVariable Long id) {
+            @PathVariable Long id
+    ) {
 
         return ResponseEntity.ok(
                 jobService.getJobById(id)
         );
     }
 
-    // Delete job
+    // ================= UPDATE JOB =================
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Job> updateJob(
+            @PathVariable Long id,
+            @RequestBody Job job,
+            Authentication authentication
+    ) {
+
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                jobService.updateJob(
+                        recruiter.getId(),
+                        id,
+                        job
+                )
+        );
+    }
+
+    // ================= DELETE JOB =================
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteJob(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
 
-        jobService.deleteJob(id);
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+
+            return ResponseEntity
+                    .status(403)
+                    .body("Only recruiters can delete jobs");
+        }
+
+        jobService.deleteJob(
+                recruiter.getId(),
+                id
+        );
 
         return ResponseEntity.ok(
                 "Job deleted successfully"
         );
+    }
+
+    // ================= HELPER =================
+
+    private User getLoggedInUser(
+            Authentication authentication
+    ) {
+
+        if (authentication == null ||
+                authentication.getName() == null) {
+
+            throw new RuntimeException(
+                    "Authentication required"
+            );
+        }
+
+        return userRepository
+                .findByEmail(authentication.getName())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged-in user not found"
+                        )
+                );
     }
 }

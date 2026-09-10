@@ -13,6 +13,7 @@ function Applicants() {
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState("");
   const [matchScores, setMatchScores] = useState({});
+  const [atsScores, setAtsScores] = useState({});
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -50,6 +51,7 @@ function Applicants() {
     if (!jobId) {
       setApplicants([]);
       setMatchScores({});
+      setAtsScores({});
       return;
     }
 
@@ -58,8 +60,13 @@ function Applicants() {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/applications/job/${jobId}`
-      );
+  `http://localhost:8080/api/applications/job/${jobId}`,
+  {
+    headers: {
+      Authorization: `Bearer ${user.token}`,
+    },
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to fetch applicants");
@@ -68,13 +75,13 @@ function Applicants() {
       const data = await response.json();
       setApplicants(data);
 
-      // Fetch AI skill-match scores for these candidates.
+      // Fetch AI skill-match + ATS scores for these candidates.
       const scoreEntries = await Promise.all(
         data.map(async (application) => {
           const candidateId = application?.user?.id;
 
           if (!candidateId) {
-            return [application.id, null];
+            return [application.id, { matchScore: null, atsScore: null }];
           }
 
           try {
@@ -82,32 +89,62 @@ function Applicants() {
               `http://localhost:8080/api/jobs/recommended/${candidateId}`
             );
 
-            if (!matchResponse.ok) {
-              return [application.id, null];
+            let matchScore = null;
+
+            if (matchResponse.ok) {
+              const recommendations = await matchResponse.json();
+
+              const matchedJob = recommendations.find((item) => {
+                const recommendedJobId = item?.job?.id ?? item?.id;
+                return Number(recommendedJobId) === Number(jobId);
+              });
+
+              matchScore = matchedJob?.matchScore ?? null;
             }
 
-            const recommendations = await matchResponse.json();
+            let atsScore = null;
 
-            const matchedJob = recommendations.find((item) => {
-              const recommendedJobId = item?.job?.id ?? item?.id;
-              return Number(recommendedJobId) === Number(jobId);
-            });
+            const analysisResponse = await fetch(
+              `http://localhost:8080/api/candidate/resume-analysis/candidate/${candidateId}`
+            );
 
-            return [
-              application.id,
-              matchedJob?.matchScore ?? null
-            ];
+            if (analysisResponse.ok) {
+              const analysisData = await analysisResponse.json();
+              const source =
+                analysisData?.analysis ||
+                analysisData?.result ||
+                analysisData ||
+                {};
+
+              atsScore =
+                source.atsScore ??
+                source.ats_score ??
+                source.score ??
+                null;
+            }
+
+            return [application.id, { matchScore, atsScore }];
           } catch {
-            return [application.id, null];
+            return [application.id, { matchScore: null, atsScore: null }];
           }
         })
       );
 
-      setMatchScores(Object.fromEntries(scoreEntries));
+      const matchScoreMap = {};
+      const atsScoreMap = {};
+
+      scoreEntries.forEach(([applicationId, scores]) => {
+        matchScoreMap[applicationId] = scores.matchScore;
+        atsScoreMap[applicationId] = scores.atsScore;
+      });
+
+      setMatchScores(matchScoreMap);
+      setAtsScores(atsScoreMap);
     } catch (err) {
       setError("Unable to load applicants.");
       setApplicants([]);
       setMatchScores({});
+      setAtsScores({});
     } finally {
       setLoading(false);
     }
@@ -127,11 +164,14 @@ function Applicants() {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/applications/${applicationId}/status?status=${status}`,
-        {
-          method: "PUT",
-        }
-      );
+  `http://localhost:8080/api/applications/${applicationId}/status?status=${status}`,
+  {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${user.token}`,
+    },
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to update status");
@@ -157,6 +197,28 @@ function Applicants() {
     localStorage.removeItem("user");
     navigate("/login");
   };
+
+  const getFinalScore = (application) => {
+    const match = Number(matchScores[application.id]);
+    const ats = Number(atsScores[application.id]);
+
+    if (Number.isNaN(match) && Number.isNaN(ats)) return null;
+    if (Number.isNaN(match)) return Math.round(ats);
+    if (Number.isNaN(ats)) return Math.round(match);
+
+    return Math.round(match * 0.6 + ats * 0.4);
+  };
+
+  const rankedApplicants = [...applicants].sort((a, b) => {
+    const scoreA = getFinalScore(a);
+    const scoreB = getFinalScore(b);
+
+    if (scoreA == null && scoreB == null) return 0;
+    if (scoreA == null) return 1;
+    if (scoreB == null) return -1;
+
+    return scoreB - scoreA;
+  });
 
   return (
     <div className="applicants-page">
@@ -328,7 +390,7 @@ function Applicants() {
                     {applicants.length} applicant
                     {applicants.length !== 1
                       ? "s"
-                      : ""} found • AI Match Score helps rank candidates by skill fit
+                      : ""} found • Candidates are ranked by AI skill match
                   </p>
                 </div>
 
@@ -361,7 +423,7 @@ function Applicants() {
 
                 <div className="applicant-list">
 
-                  {applicants.map((application) => {
+                  {rankedApplicants.map((application, index) => {
 
                     const candidate = application.user;
 
@@ -372,7 +434,38 @@ function Applicants() {
                       <div
                         className="applicant-card"
                         key={application.id}
+                        style={{ position: "relative" }}
                       >
+
+                        {/* AI Ranking */}
+                        {getFinalScore(application) !== null && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "12px",
+                              right: "12px",
+                              padding: "6px 10px",
+                              borderRadius: "999px",
+                              background:
+                                index === 0
+                                  ? "#ecfdf3"
+                                  : index === 1
+                                  ? "#eff6ff"
+                                  : "#f8fafc",
+                              color:
+                                index === 0
+                                  ? "#047857"
+                                  : index === 1
+                                  ? "#2563eb"
+                                  : "#475467",
+                              fontSize: "11px",
+                              fontWeight: "800",
+                            }}
+                          >
+                            #{index + 1} • {getFinalScore(application)}%{" "}
+                            {index === 0 ? "Top Candidate" : "Score"}
+                          </div>
+                        )}
 
                         {/* Avatar */}
                         <div className="candidate-avatar">
@@ -405,26 +498,61 @@ function Applicants() {
                             {status}
                           </span>
 
-                          {matchScores[application.id] !== null &&
-                            matchScores[application.id] !== undefined && (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "6px",
+                              marginTop: "8px",
+                            }}
+                          >
+                            {matchScores[application.id] !== null &&
+                              matchScores[application.id] !== undefined && (
+                                <span
+                                  style={{
+                                    padding: "5px 9px",
+                                    borderRadius: "999px",
+                                    background: "#eef2ff",
+                                    color: "#4f46e5",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  🎯 Match {matchScores[application.id]}%
+                                </span>
+                              )}
+
+                            {atsScores[application.id] !== null &&
+                              atsScores[application.id] !== undefined && (
+                                <span
+                                  style={{
+                                    padding: "5px 9px",
+                                    borderRadius: "999px",
+                                    background: "#f0fdf4",
+                                    color: "#15803d",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  📄 ATS {atsScores[application.id]}%
+                                </span>
+                              )}
+
+                            {getFinalScore(application) !== null && (
                               <span
                                 style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "5px",
-                                  marginTop: "8px",
-                                  padding: "6px 10px",
+                                  padding: "5px 9px",
                                   borderRadius: "999px",
-                                  background: "#eef2ff",
-                                  color: "#4f46e5",
-                                  fontSize: "12px",
-                                  fontWeight: "700",
-                                  whiteSpace: "nowrap",
+                                  background: "#111827",
+                                  color: "#ffffff",
+                                  fontSize: "11px",
+                                  fontWeight: "800",
                                 }}
                               >
-                                🎯 {matchScores[application.id]}% AI Match
+                                ⭐ Final {getFinalScore(application)}%
                               </span>
                             )}
+                          </div>
 
                           <span className="application-date">
                             Applied:{" "}

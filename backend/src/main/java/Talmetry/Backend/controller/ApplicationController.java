@@ -1,9 +1,12 @@
 package Talmetry.Backend.controller;
 
 import Talmetry.Backend.entity.Application;
+import Talmetry.Backend.entity.User;
 import Talmetry.Backend.service.ApplicationService;
+import Talmetry.Backend.repository.UserRepository;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,62 +17,143 @@ import java.util.List;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final UserRepository userRepository;
 
-    public ApplicationController(ApplicationService applicationService) {
+    public ApplicationController(
+            ApplicationService applicationService,
+            UserRepository userRepository
+    ) {
         this.applicationService = applicationService;
+        this.userRepository = userRepository;
     }
 
-    // Apply for a job
+    // ================= APPLY FOR JOB =================
+
     @PostMapping("/apply")
     public ResponseEntity<Application> applyForJob(
             @RequestParam Long userId,
-            @RequestParam Long jobId) {
+            @RequestParam Long jobId,
+            Authentication authentication
+    ) {
+
+        User loggedInUser = getLoggedInUser(authentication);
+
+        if (!loggedInUser.getId().equals(userId)) {
+            return ResponseEntity.status(403).build();
+        }
 
         Application application =
-                applicationService.applyForJob(userId, jobId);
+                applicationService.applyForJob(
+                        loggedInUser.getId(),
+                        jobId
+                );
 
         return ResponseEntity.ok(application);
     }
 
-    // Get all applications of a candidate
+    // ================= CANDIDATE APPLICATIONS =================
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Application>> getUserApplications(
-            @PathVariable Long userId) {
+            @PathVariable Long userId,
+            Authentication authentication
+    ) {
+
+        User loggedInUser = getLoggedInUser(authentication);
 
         return ResponseEntity.ok(
-                applicationService.getUserApplications(userId)
+                applicationService.getUserApplications(
+                        loggedInUser.getId(),
+                        userId
+                )
         );
     }
 
-    // Get all applicants for a job
+    // ================= JOB APPLICANTS =================
+
     @GetMapping("/job/{jobId}")
     public ResponseEntity<List<Application>> getJobApplications(
-            @PathVariable Long jobId) {
+            @PathVariable Long jobId,
+            Authentication authentication
+    ) {
+
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
 
         return ResponseEntity.ok(
-                applicationService.getJobApplications(jobId)
+                applicationService.getJobApplications(
+                        recruiter.getId(),
+                        jobId
+                )
         );
     }
 
-    // Get application by ID
+    // ================= GET APPLICATION =================
+
     @GetMapping("/{id}")
     public ResponseEntity<Application> getApplicationById(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        User loggedInUser = getLoggedInUser(authentication);
 
         return ResponseEntity.ok(
-                applicationService.getApplicationById(id)
+                applicationService.getApplicationById(
+                        loggedInUser.getId(),
+                        id
+                )
         );
     }
 
-    // Update application status
+    // ================= UPDATE STATUS =================
+
     @PutMapping("/{id}/status")
     public ResponseEntity<Application> updateApplicationStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
+            @RequestParam String status,
+            Authentication authentication
+    ) {
+
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
 
         Application application =
-                applicationService.updateApplicationStatus(id, status);
+                applicationService.updateApplicationStatus(
+                        recruiter.getId(),
+                        id,
+                        status
+                );
 
         return ResponseEntity.ok(application);
+    }
+
+    // ================= HELPER =================
+
+    private User getLoggedInUser(
+            Authentication authentication
+    ) {
+
+        if (authentication == null ||
+                authentication.getName() == null) {
+
+            throw new RuntimeException(
+                    "Authentication required"
+            );
+        }
+
+        return userRepository
+                .findByEmail(authentication.getName())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged-in user not found"
+                        )
+                );
     }
 }

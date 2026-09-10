@@ -55,15 +55,16 @@ function CreateJob() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/jobs",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+  `http://localhost:8080/api/jobs?recruiterId=${user.id}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${user.token}`,
+    },
+    body: JSON.stringify(formData),
+  }
+);
 
       const data = await response.json();
 

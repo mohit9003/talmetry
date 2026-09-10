@@ -16,6 +16,7 @@ import CreateJob from "./pages/CreateJob";
 import ManageJobs from "./pages/ManageJobs";
 import Applicants from "./pages/Applicants";
 import CandidateDetails from "./pages/CandidateDetails";
+import Notifications from "./pages/Notifications";
 function Home() {
   return (
     <div className="app">
@@ -182,6 +183,10 @@ function App() {
         <Route
         path="/recruiter/candidate/:id"
         element={<CandidateDetails />}
+        />
+        <Route
+        path="/notifications"
+        element={<Notifications />}
         />
       </Routes>
     </BrowserRouter>

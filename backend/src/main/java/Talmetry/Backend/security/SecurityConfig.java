@@ -13,18 +13,25 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
         http
+            // Disable CSRF for REST API
             .csrf(csrf -> csrf.disable())
 
+            // Enable CORS
             .cors(cors -> {})
 
+            // JWT based authentication
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
@@ -33,23 +40,21 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // Authentication APIs
+                // ================= PUBLIC =================
+
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login"
                 ).permitAll()
 
-                // Jobs - development/testing
+                // Anyone can view jobs
                 .requestMatchers(
-                    "/api/jobs/**"
+                    HttpMethod.GET,
+                    "/api/jobs",
+                    "/api/jobs/open",
+                    "/api/jobs/*",
+                    "/api/jobs/recommended/**"
                 ).permitAll()
-
-                // Applications - development/testing
-                .requestMatchers(
-                    "/api/applications/**"
-                ).permitAll()
-
-                .requestMatchers("/api/interviews/**").permitAll()
 
                 // CORS preflight
                 .requestMatchers(
@@ -57,10 +62,54 @@ public class SecurityConfig {
                     "/**"
                 ).permitAll()
 
-                // Everything else requires authentication
+
+                // ================= RECRUITER ONLY =================
+
+                // Create job
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/jobs"
+                ).hasRole("RECRUITER")
+
+                // Delete job
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/jobs/**"
+                ).hasRole("RECRUITER")
+
+                // Recruiter analytics
+                .requestMatchers(
+                    "/api/recruiter/**"
+                ).hasRole("RECRUITER")
+
+
+                // ================= AUTHENTICATED USERS =================
+
+                // Candidate profile/resume etc.
+                .requestMatchers(
+                    "/api/candidate/**"
+                ).authenticated()
+
+                // Interview APIs
+                .requestMatchers(
+                    "/api/interviews/**"
+                ).authenticated()
+
+                // Applications temporarily remain public
+                // because their ownership checks will be added next
+                .requestMatchers(
+    "/api/applications/**"
+).authenticated()
+
+.requestMatchers(
+    "/api/notifications/**"
+).authenticated()
+
+                // Everything else requires login
                 .anyRequest().authenticated()
             )
 
+            // JWT filter
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
