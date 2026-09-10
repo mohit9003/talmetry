@@ -531,3 +531,170 @@
     grid-template-columns: 1fr;
   }
 }
+/* =========================
+   ATS RESUME ANALYSIS
+========================= */
+
+.ats-card {
+  grid-column: 1 / -1;
+}
+
+.ats-score-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  margin-top: 20px;
+  background: #f8f9ff;
+  border-radius: 16px;
+}
+
+.ats-score-circle {
+  width: 110px;
+  height: 110px;
+  min-width: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b5bf7, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+  box-shadow: 0 10px 25px rgba(91, 91, 247, 0.25);
+}
+
+.ats-score-circle span {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ats-score-circle small {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.ats-score-info h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.ats-score-info p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.ats-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.ats-detail-box {
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: white;
+}
+
+.ats-detail-box h4 {
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: 15px;
+}
+
+.ats-detail-box p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.no-analysis {
+  text-align: center;
+  padding: 35px 20px;
+  background: #f8f9ff;
+  border-radius: 14px;
+  margin-top: 20px;
+}
+
+.no-analysis span {
+  font-size: 35px;
+}
+
+.no-analysis h3 {
+  margin: 10px 0 6px;
+  color: #111827;
+}
+
+.no-analysis p {
+  margin: 0;
+  color: #667085;
+}
+
+@media (max-width: 768px) {
+  .ats-details {
+    grid-template-columns: 1fr;
+  }
+
+  .ats-score-section {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+/* Fix ATS heading washed-out appearance */
+.ats-card .card-header {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.ats-card .card-header h2 {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+.ats-card .card-header p {
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+.ats-card .card-icon {
+  opacity: 1 !important;
+  filter: none !important;
+}
+.ats-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-resume-btn {
+  border: none;
+  background: #4f46e5;
+  color: white;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.view-resume-btn:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .ats-header-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .view-resume-btn {
+    padding: 9px 14px;
+  }
+}

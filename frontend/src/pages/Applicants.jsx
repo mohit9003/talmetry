@@ -12,6 +12,7 @@ function Applicants() {
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState("");
+  const [matchScores, setMatchScores] = useState({});
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -48,6 +49,7 @@ function Applicants() {
   const fetchApplicants = async (jobId) => {
     if (!jobId) {
       setApplicants([]);
+      setMatchScores({});
       return;
     }
 
@@ -65,9 +67,47 @@ function Applicants() {
 
       const data = await response.json();
       setApplicants(data);
+
+      // Fetch AI skill-match scores for these candidates.
+      const scoreEntries = await Promise.all(
+        data.map(async (application) => {
+          const candidateId = application?.user?.id;
+
+          if (!candidateId) {
+            return [application.id, null];
+          }
+
+          try {
+            const matchResponse = await fetch(
+              `http://localhost:8080/api/jobs/recommended/${candidateId}`
+            );
+
+            if (!matchResponse.ok) {
+              return [application.id, null];
+            }
+
+            const recommendations = await matchResponse.json();
+
+            const matchedJob = recommendations.find((item) => {
+              const recommendedJobId = item?.job?.id ?? item?.id;
+              return Number(recommendedJobId) === Number(jobId);
+            });
+
+            return [
+              application.id,
+              matchedJob?.matchScore ?? null
+            ];
+          } catch {
+            return [application.id, null];
+          }
+        })
+      );
+
+      setMatchScores(Object.fromEntries(scoreEntries));
     } catch (err) {
       setError("Unable to load applicants.");
       setApplicants([]);
+      setMatchScores({});
     } finally {
       setLoading(false);
     }
@@ -288,7 +328,7 @@ function Applicants() {
                     {applicants.length} applicant
                     {applicants.length !== 1
                       ? "s"
-                      : ""} found
+                      : ""} found • AI Match Score helps rank candidates by skill fit
                   </p>
                 </div>
 
@@ -356,7 +396,7 @@ function Applicants() {
 
                         </div>
 
-                        {/* Status */}
+                        {/* Status + AI Match Score */}
                         <div className="application-details">
 
                           <span
@@ -364,6 +404,27 @@ function Applicants() {
                           >
                             {status}
                           </span>
+
+                          {matchScores[application.id] !== null &&
+                            matchScores[application.id] !== undefined && (
+                              <span
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "5px",
+                                  marginTop: "8px",
+                                  padding: "6px 10px",
+                                  borderRadius: "999px",
+                                  background: "#eef2ff",
+                                  color: "#4f46e5",
+                                  fontSize: "12px",
+                                  fontWeight: "700",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                🎯 {matchScores[application.id]}% AI Match
+                              </span>
+                            )}
 
                           <span className="application-date">
                             Applied:{" "}

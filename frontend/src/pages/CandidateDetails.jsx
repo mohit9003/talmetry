@@ -11,6 +11,9 @@ function CandidateDetails() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [resume, setResume] = useState(null);
+const [resumeAnalysis, setResumeAnalysis] = useState(null);
+const storedUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -57,6 +60,36 @@ function CandidateDetails() {
       const applicationsData = await applicationsResponse.json();
 
       setApplications(applicationsData);
+
+      // 3. Fetch candidate resume
+const resumeResponse = await fetch(
+  `http://localhost:8080/api/candidate/resume/${id}`,
+  {
+    headers: {
+      Authorization: `Bearer ${storedUser.token}`,
+    },
+  }
+);
+
+if (resumeResponse.ok) {
+  const resumeData = await resumeResponse.json();
+  setResume(resumeData);
+
+  // 4. Fetch ATS analysis
+  const analysisResponse = await fetch(
+  `http://localhost:8080/api/candidate/resume-analysis/${resumeData.id}`,
+  {
+    headers: {
+      Authorization: `Bearer ${storedUser.token}`,
+    },
+  }
+);
+
+  if (analysisResponse.ok) {
+    const analysisData = await analysisResponse.json();
+    setResumeAnalysis(analysisData);
+  }
+}
 
       // 3. Get candidate's actual User data
       const applicationUser =
@@ -285,6 +318,130 @@ function CandidateDetails() {
 
           {/* LEFT */}
           <div className="candidate-left">
+
+            {/* ATS RESUME ANALYSIS */}
+  <div className="candidate-card ats-card">
+    <div className="card-header">
+      <div>
+        <h2>AI Resume Analysis</h2>
+        <p>AI-powered candidate resume evaluation</p>
+      </div>
+
+      <div className="ats-header-actions">
+        {resume && (
+          <button
+            className="view-resume-btn"
+            onClick={async () => {
+              try {
+                if (!user?.token) {
+                  alert("Recruiter session expired. Please login again.");
+                  navigate("/login");
+                  return;
+                }
+
+                const response = await fetch(
+                  `http://localhost:8080/api/candidate/resume/download/${id}`,
+                  {
+                    method: "GET",
+                    headers: {
+                      Authorization: `Bearer ${user.token}`,
+                    },
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(
+                    `Unable to open resume (${response.status})`
+                  );
+                }
+
+                const blob = await response.blob();
+                const fileUrl = window.URL.createObjectURL(blob);
+
+                window.open(fileUrl, "_blank");
+
+                setTimeout(() => {
+                  window.URL.revokeObjectURL(fileUrl);
+                }, 60000);
+              } catch (error) {
+                console.error("Resume view error:", error);
+                alert("Unable to open candidate resume.");
+              }
+            }}
+          >
+            📄 View Resume
+          </button>
+        )}
+
+        <div className="card-icon"></div>
+      </div>
+    </div>
+
+  {resumeAnalysis ? (
+    <>
+      <div className="ats-score-section">
+        <div className="ats-score-circle">
+          <span>{resumeAnalysis.atsScore ?? 0}</span>
+          <small>/100</small>
+        </div>
+
+        <div className="ats-score-info">
+          <h3>
+            {(resumeAnalysis.atsScore ?? 0) >= 80
+              ? "Excellent Match"
+              : (resumeAnalysis.atsScore ?? 0) >= 60
+              ? "Good Match"
+              : "Needs Improvement"}
+          </h3>
+
+          <p>
+            Resume has been analyzed using Talmetry AI.
+          </p>
+        </div>
+      </div>
+
+      <div className="ats-details">
+
+        <div className="ats-detail-box">
+          <h4>Extracted Skills</h4>
+          <p>
+            {resumeAnalysis.extractedSkills || "No skills detected"}
+          </p>
+        </div>
+
+        <div className="ats-detail-box">
+          <h4>Strengths</h4>
+          <p>
+            {resumeAnalysis.strengths || "No strengths available"}
+          </p>
+        </div>
+
+        <div className="ats-detail-box">
+          <h4>Weaknesses</h4>
+          <p>
+            {resumeAnalysis.weaknesses || "No weaknesses available"}
+          </p>
+        </div>
+
+        <div className="ats-detail-box">
+          <h4>AI Suggestions</h4>
+          <p>
+            {resumeAnalysis.suggestions || "No suggestions available"}
+          </p>
+        </div>
+
+      </div>
+    </>
+  ) : (
+    <div className="no-analysis">
+      <span>📄</span>
+      <h3>No ATS Analysis Available</h3>
+      <p>
+        This candidate has not analyzed their resume yet.
+      </p>
+    </div>
+  )}
+</div>
 
             {/* Professional Information */}
             <section className="details-card">
