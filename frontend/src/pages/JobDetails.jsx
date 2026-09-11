@@ -22,7 +22,8 @@ function JobDetails() {
       return;
     }
 
-    // Load job details
+    // ================= LOAD JOB DETAILS =================
+
     fetch(`http://localhost:8080/api/jobs/${id}`)
       .then(async (response) => {
         if (!response.ok) {
@@ -38,19 +39,40 @@ function JobDetails() {
       .catch((error) => {
         console.error("Job details error:", error);
 
-        setMessage(error.message || "Unable to load job details.");
+        setMessage(
+          error.message || "Unable to load job details."
+        );
         setMessageType("error");
       })
       .finally(() => {
         setLoading(false);
       });
 
-    // Check whether candidate already applied
-    fetch(`http://localhost:8080/api/applications/user/${user.id}`)
+    // ================= CHECK APPLICATION =================
+
+    fetch(
+      `http://localhost:8080/api/applications/user/${user.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    )
       .then(async (response) => {
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(errorText || "Unable to check application");
+
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "Session expired. Please login again."
+            );
+          }
+
+          throw new Error(
+            errorText || "Unable to check application"
+          );
         }
 
         return response.json();
@@ -58,15 +80,21 @@ function JobDetails() {
       .then((applications) => {
         const hasApplied = applications.some(
           (application) =>
-            application.job && String(application.job.id) === String(id)
+            application.job &&
+            String(application.job.id) === String(id)
         );
 
         setAlreadyApplied(hasApplied);
       })
       .catch((error) => {
-        console.error("Application check error:", error);
+        console.error(
+          "Application check error:",
+          error
+        );
       });
   }, [id, navigate]);
+
+  // ================= APPLY FOR JOB =================
 
   const handleApply = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -76,9 +104,20 @@ function JobDetails() {
       return;
     }
 
+    // Candidate check
+    if (user.role !== "CANDIDATE") {
+      setMessage(
+        "Only candidates can apply for jobs."
+      );
+      setMessageType("error");
+      return;
+    }
+
     // UI level duplicate protection
     if (alreadyApplied) {
-      setMessage("You have already applied for this job.");
+      setMessage(
+        "You have already applied for this job."
+      );
       setMessageType("warning");
       return;
     }
@@ -92,38 +131,51 @@ function JobDetails() {
         `http://localhost:8080/api/applications/apply?userId=${user.id}&jobId=${id}`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      // Try to read JSON response
-      let data = null;
       const responseText = await response.text();
 
+      let data = null;
+
       try {
-        data = responseText ? JSON.parse(responseText) : null;
+        data = responseText
+          ? JSON.parse(responseText)
+          : null;
       } catch {
         data = null;
       }
 
-      // Backend error
-      if (!response.ok) {
-        let backendMessage = "Unable to submit application.";
+      // ================= BACKEND ERROR =================
 
-        if (data?.message) {
+      if (!response.ok) {
+        let backendMessage =
+          "Unable to submit application.";
+
+        if (response.status === 401) {
+          backendMessage =
+            "Your session has expired. Please login again.";
+        } else if (response.status === 403) {
+          backendMessage =
+            "You are not authorized to apply for this job.";
+        } else if (response.status === 404) {
+          backendMessage =
+            "Job or candidate was not found.";
+        } else if (data?.message) {
           backendMessage = data.message;
         } else if (responseText) {
           backendMessage = responseText;
-        } else if (response.status === 403) {
-          backendMessage =
-            "You are not authorized to apply. Please login again.";
-        } else if (response.status === 404) {
-          backendMessage = "Job or candidate was not found.";
         }
 
         throw new Error(backendMessage);
       }
 
-      // Success
+      // ================= SUCCESS =================
+
       setAlreadyApplied(true);
 
       setMessage(
@@ -135,10 +187,13 @@ function JobDetails() {
     } catch (error) {
       console.error("Apply error:", error);
 
-      const errorMessage = error.message || "";
+      const errorMessage =
+        error.message || "";
 
       if (
-        errorMessage.toLowerCase().includes("already applied")
+        errorMessage
+          .toLowerCase()
+          .includes("already applied")
       ) {
         setAlreadyApplied(true);
 
@@ -147,14 +202,36 @@ function JobDetails() {
         );
 
         setMessageType("warning");
+      } else if (
+        errorMessage
+          .toLowerCase()
+          .includes("session expired")
+      ) {
+        setMessage(
+          "Your session has expired. Please login again."
+        );
+
+        setMessageType("error");
+
+        localStorage.removeItem("user");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1200);
       } else {
-        setMessage(errorMessage || "Unable to submit application.");
+        setMessage(
+          errorMessage ||
+            "Unable to submit application."
+        );
+
         setMessageType("error");
       }
     } finally {
       setApplying(false);
     }
   };
+
+  // ================= LOADING =================
 
   if (loading) {
     return (
@@ -168,6 +245,8 @@ function JobDetails() {
     );
   }
 
+  // ================= JOB NOT FOUND =================
+
   if (!job) {
     return (
       <div className="job-details-page">
@@ -175,21 +254,27 @@ function JobDetails() {
 
           <button
             className="back-dashboard-button"
-            onClick={() => navigate("/recommended-jobs")}
+            onClick={() =>
+              navigate("/recommended-jobs")
+            }
           >
             ← Back to Jobs
           </button>
 
           <div className="job-details-card">
+
             <div className="application-message error">
               {message || "Job not found."}
             </div>
+
           </div>
 
         </div>
       </div>
     );
   }
+
+  // ================= MAIN UI =================
 
   return (
     <div className="job-details-page">
@@ -198,7 +283,9 @@ function JobDetails() {
 
         <button
           className="back-dashboard-button"
-          onClick={() => navigate("/recommended-jobs")}
+          onClick={() =>
+            navigate("/recommended-jobs")
+          }
         >
           ← Back to Jobs
         </button>
@@ -210,15 +297,19 @@ function JobDetails() {
           <div className="job-details-header">
 
             <div>
+
               <p className="page-eyebrow">
                 JOB DETAILS
               </p>
 
-              <h1>{job.title}</h1>
+              <h1>
+                {job.title}
+              </h1>
 
               <p className="job-details-company">
                 {job.company}
               </p>
+
             </div>
 
             <span className="job-status">
@@ -227,21 +318,27 @@ function JobDetails() {
 
           </div>
 
-
           {/* JOB INFO */}
 
           <div className="job-details-info">
 
-            <span>📍 {job.location}</span>
+            <span>
+              📍 {job.location}
+            </span>
 
-            <span>💼 {job.jobType}</span>
+            <span>
+              💼 {job.jobType}
+            </span>
 
-            <span>💰 {job.salary}</span>
+            <span>
+              💰 {job.salary}
+            </span>
 
-            <span>🎓 {job.experience}</span>
+            <span>
+              🎓 {job.experience}
+            </span>
 
           </div>
-
 
           {/* DESCRIPTION */}
 
@@ -256,7 +353,6 @@ function JobDetails() {
             </p>
 
           </div>
-
 
           {/* SKILLS */}
 
@@ -280,7 +376,6 @@ function JobDetails() {
 
           </div>
 
-
           {/* MESSAGE */}
 
           {message && (
@@ -291,17 +386,21 @@ function JobDetails() {
             </div>
           )}
 
-
           {/* ACTIONS */}
 
           <div className="job-details-actions">
 
             <button
               className={`job-apply-button ${
-                alreadyApplied ? "already-applied" : ""
+                alreadyApplied
+                  ? "already-applied"
+                  : ""
               }`}
               onClick={handleApply}
-              disabled={applying || alreadyApplied}
+              disabled={
+                applying ||
+                alreadyApplied
+              }
             >
 
               {applying
@@ -312,11 +411,12 @@ function JobDetails() {
 
             </button>
 
-
             <button
               className="back-dashboard-button"
               onClick={() =>
-                navigate("/candidate-dashboard")
+                navigate(
+                  "/candidate-dashboard"
+                )
               }
             >
               Dashboard

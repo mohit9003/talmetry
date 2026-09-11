@@ -3,6 +3,7 @@ package Talmetry.Backend.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +16,6 @@ public class JwtService {
 
     @Value("${jwt.secret}")
     private String secret;
-
-    private final long expirationTime = 86400000; // 24 hours
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(
@@ -31,7 +30,10 @@ public class JwtService {
                 .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(
-                        new Date(System.currentTimeMillis() + expirationTime)
+                        new Date(
+                                System.currentTimeMillis()
+                                        + 1000L * 60 * 60 * 24
+                        )
                 )
                 .signWith(getSigningKey())
                 .compact();
@@ -39,12 +41,32 @@ public class JwtService {
 
     public String extractEmail(String token) {
 
-        Claims claims = Jwts.parser()
+        return getClaims(token)
+                .getSubject();
+    }
+
+    public String extractRole(String token) {
+
+        return getClaims(token)
+                .get("role", String.class);
+    }
+
+    public boolean isTokenValid(String token) {
+
+        try {
+            getClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private Claims getClaims(String token) {
+
+        return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return claims.getSubject();
     }
 }

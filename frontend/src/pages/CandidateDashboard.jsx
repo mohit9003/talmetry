@@ -1,507 +1,1155 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import "./CandidateDetails.css";
 
-function CandidateDashboard() {
+function CandidateDetails() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(null);
+  const [candidate, setCandidate] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [activeMenu, setActiveMenu] = useState("Dashboard");
-  const [applicationCount, setApplicationCount] = useState(0);
-  const [recentApplications, setRecentApplications] = useState([]);
-  const [matchedJobsCount, setMatchedJobsCount] = useState(0);
-  const [recommendedJobs, setRecommendedJobs] = useState([]);
-  const [profileSkills, setProfileSkills] = useState([]);
-  const [profileCompletion, setProfileCompletion] = useState(0);
+  const [resume, setResume] = useState(null);
+  const [resumeAnalysis, setResumeAnalysis] = useState(null);
+
   useEffect(() => {
-  if (!user) {
-    navigate("/login");
-    return;
-  }
+    const storedUser = JSON.parse(localStorage.getItem("user"));
 
-  const token = user.token;
+    if (!storedUser) {
+      navigate("/login");
+      return;
+    }
 
-  // Fetch applications
-  fetch(`http://localhost:8080/api/applications/user/${user.id}`)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to fetch applications");
+    if (storedUser.role !== "RECRUITER") {
+      navigate("/candidate-dashboard");
+      return;
+    }
+
+    setUser(storedUser);
+    fetchCandidateData(storedUser);
+  }, [id, navigate]);
+
+  const fetchCandidateData = async (storedUser) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const token = storedUser.token;
+
+      if (!token) {
+        throw new Error("Recruiter session expired. Please login again.");
       }
 
-      return response.json();
-    })
-    .then((data) => {
-      setApplicationCount(data.length);
+      // =========================================================
+      // 1. FETCH CANDIDATE PROFILE
+      // =========================================================
 
-      const sortedApplications = [...data].sort((a, b) => {
-        return (
-          new Date(b.appliedAt || 0) -
-          new Date(a.appliedAt || 0)
-        );
-      });
-
-      setRecentApplications(sortedApplications.slice(0, 3));
-    })
-    .catch((error) => {
-      console.error("Application fetch error:", error);
-    });
-
-  // Fetch recommended jobs
-  fetch(`http://localhost:8080/api/jobs/recommended/${user.id}`, {
-    headers: token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {},
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to fetch recommended jobs");
-      }
-
-      return response.json();
-    })
-   .then((data) => {
-  setMatchedJobsCount(data.length);
-  setRecommendedJobs(data);
-    })
-    .catch((error) => {
-      console.error("Recommended jobs error:", error);
-    });
-
-      // Fetch candidate profile
-  fetch(`http://localhost:8080/api/candidate/profile/${user.id}`, {
-    headers: {
-      Authorization: `Bearer ${user.token}`,
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile");
-      }
-
-      return response.json();
-    })
-    .then((data) => {
-  // Skills
-  if (data.skills) {
-    const skills = data.skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter((skill) => skill.length > 0);
-
-    setProfileSkills(skills);
-  } else {
-    setProfileSkills([]);
-  }
-
-  // Profile completion
-  const fields = [
-    data.phone,
-    data.location,
-    data.education,
-    data.experience,
-    data.skills,
-    data.github,
-    data.linkedin,
-  ];
-
-  const completedFields = fields.filter(
-    (field) => field && field.trim().length > 0
-  ).length;
-
-  const completion = Math.round(
-    (completedFields / fields.length) * 100
-  );
-
-  setProfileCompletion(completion);
+      fetch(`http://localhost:8080/api/candidate/profile/${candidateId}`, {
+  headers: {
+    Authorization: `Bearer ${user.token}`,
+    "Content-Type": "application/json",
+  },
 })
-    .catch((error) => {
-      console.error("Profile skills error:", error);
-      setProfileSkills([]);
-    });
+     
 
-}, [navigate, user?.id, user?.token]);
-  const menuItems = [
-    "Dashboard",
-    "My Profile",
-    "Resume",
-    "Recommended Jobs",
-    "Applications",
-    "AI Interview",
-    "Interview History",
-    "Notifications",
-  ];
+      let profileData = {};
 
-  const handleMenuClick = (item) => {
-    setActiveMenu(item);
+      if (profileResponse.ok) {
+        profileData = await profileResponse.json();
+      } else if (profileResponse.status !== 404) {
+        throw new Error(
+          `Unable to load candidate profile (${profileResponse.status})`
+        );
+      }
 
-    switch (item) {
-      case "Dashboard":
-        navigate("/candidate-dashboard");
-        break;
+      // =========================================================
+      // 2. FETCH RECRUITER'S JOBS
+      // =========================================================
 
-      case "My Profile":
-        navigate("/my-profile");
-        break;
+      const jobsResponse = await fetch(
+        `http://localhost:8080/api/jobs/recruiter/${storedUser.id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      case "Resume":
-        navigate("/resume");
-        break;
+      if (!jobsResponse.ok) {
+        throw new Error(
+          `Unable to load recruiter jobs (${jobsResponse.status})`
+        );
+      }
 
-      case "Recommended Jobs":
-        navigate("/recommended-jobs");
-        break;
+      const recruiterJobs = await jobsResponse.json();
 
-      case "Applications":
-        navigate("/applications");
-        break;
+      // =========================================================
+      // 3. FETCH APPLICATIONS FOR RECRUITER'S JOBS
+      //    AND FILTER CURRENT CANDIDATE
+      // =========================================================
 
-      case "AI Interview":
-        navigate("/ai-interview");
-        break;
+      let candidateApplications = [];
 
-        case "Interview History":
-        navigate("/interview-history");
-        break;
-        
-        case "Notifications":
-        navigate("/notifications");
-        break;
+      for (const job of recruiterJobs) {
+        try {
+          const applicationsResponse = await fetch(
+            `http://localhost:8080/api/applications/job/${job.id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-      default:
-        break;
+          if (applicationsResponse.ok) {
+            const jobApplications =
+              await applicationsResponse.json();
+
+            const matchingApplications =
+              jobApplications.filter(
+                (application) =>
+                  application.user &&
+                  String(application.user.id) === String(id)
+              );
+
+            candidateApplications.push(
+              ...matchingApplications
+            );
+          }
+        } catch (applicationError) {
+          console.error(
+            `Unable to fetch applications for job ${job.id}:`,
+            applicationError
+          );
+        }
+      }
+
+      setApplications(candidateApplications);
+
+      // =========================================================
+      // 4. FETCH CANDIDATE RESUME
+      // =========================================================
+
+      const resumeResponse = await fetch(
+        `http://localhost:8080/api/candidate/resume/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      let resumeData = null;
+
+      if (resumeResponse.ok) {
+        resumeData = await resumeResponse.json();
+        setResume(resumeData);
+
+        // =======================================================
+        // 5. FETCH ATS ANALYSIS
+        // =======================================================
+
+        const analysisResponse = await fetch(
+          `http://localhost:8080/api/candidate/resume-analysis/${resumeData.id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (analysisResponse.ok) {
+          const analysisData =
+            await analysisResponse.json();
+
+          setResumeAnalysis(analysisData);
+        }
+      }
+
+      // =========================================================
+      // 6. GET ACTUAL USER DATA
+      // =========================================================
+
+      const applicationUser =
+        candidateApplications.length > 0
+          ? candidateApplications[0]?.user
+          : null;
+
+      // =========================================================
+      // 7. MERGE USER + PROFILE DATA
+      // =========================================================
+
+      setCandidate({
+        id: applicationUser?.id || Number(id),
+
+        fullName:
+          applicationUser?.fullName ||
+          profileData?.user?.fullName ||
+          "Candidate",
+
+        email:
+          applicationUser?.email ||
+          profileData?.user?.email ||
+          "Email not available",
+
+        phone: profileData?.phone || "",
+
+        location:
+          profileData?.location || "",
+
+        education:
+          profileData?.education || "",
+
+        experience:
+          profileData?.experience || "",
+
+        skills:
+          profileData?.skills || "",
+
+        github:
+          profileData?.github || "",
+
+        linkedin:
+          profileData?.linkedin || "",
+      });
+    } catch (err) {
+      console.error(
+        "Candidate details error:",
+        err
+      );
+
+      if (
+        err.message.includes("401") ||
+        err.message.includes("403") ||
+        err.message.toLowerCase().includes("session")
+      ) {
+        localStorage.removeItem("user");
+        navigate("/login");
+        return;
+      }
+
+      setError(
+        err.message ||
+          "Unable to load candidate details."
+      );
+    } finally {
+      setLoading(false);
     }
   };
+
+  // =============================================================
+  // LOGOUT
+  // =============================================================
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/login");
   };
 
-  return (
-    <div className="dashboard-page">
+  // =============================================================
+  // SKILLS
+  // =============================================================
 
-      {/* Sidebar */}
-      <aside className="dashboard-sidebar">
+  const skills = candidate?.skills
+    ? candidate.skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean)
+    : [];
 
-        <div className="dashboard-logo">
-          <span>Talmetry</span>
+  // =============================================================
+  // LOADING
+  // =============================================================
+
+  if (loading) {
+    return (
+      <div className="candidate-details-loading">
+        <div className="details-loader">
+          ⏳
         </div>
 
-        <nav>
-          {menuItems.map((item) => (
-            <button
-              key={item}
-              className={
-                activeMenu === item
-                  ? "menu-item active"
-                  : "menu-item"
-              }
-              onClick={() => handleMenuClick(item)}
-            >
-              {item}
-            </button>
-          ))}
+        <h2>
+          Loading candidate profile...
+        </h2>
+
+        <p>
+          Please wait while we fetch the
+          candidate information.
+        </p>
+      </div>
+    );
+  }
+
+  // =============================================================
+  // ERROR
+  // =============================================================
+
+  if (error) {
+    return (
+      <div className="candidate-details-error-page">
+
+        <div className="details-error-icon">
+          ⚠️
+        </div>
+
+        <h2>
+          Candidate details unavailable
+        </h2>
+
+        <p>
+          {error}
+        </p>
+
+        <button
+          onClick={() =>
+            navigate("/recruiter/applicants")
+          }
+        >
+          ← Back to Applicants
+        </button>
+
+      </div>
+    );
+  }
+
+  // =============================================================
+  // MAIN UI
+  // =============================================================
+
+  return (
+    <div className="candidate-details-page">
+
+      {/* =======================================================
+          SIDEBAR
+      ======================================================== */}
+
+      <aside className="recruiter-sidebar">
+
+        <div className="recruiter-logo">
+
+          <div className="logo-mark">
+            T
+          </div>
+
+          <div>
+            <h2>
+              Talmetry
+            </h2>
+
+            <span>
+              Recruiter Panel
+            </span>
+          </div>
+
+        </div>
+
+        <nav className="recruiter-nav">
+
+          <button
+            onClick={() =>
+              navigate("/recruiter-dashboard")
+            }
+          >
+            📊 Dashboard
+          </button>
+
+          <button
+            onClick={() =>
+              navigate("/recruiter/jobs")
+            }
+          >
+            💼 Manage Jobs
+          </button>
+
+          <button
+            onClick={() =>
+              navigate("/recruiter/create-job")
+            }
+          >
+            ➕ Create Job
+          </button>
+
+          <button
+            className="active"
+            onClick={() =>
+              navigate("/recruiter/applicants")
+            }
+          >
+            👥 Applicants
+          </button>
+
         </nav>
 
         <button
-          className="logout-button"
+          className="recruiter-logout"
           onClick={handleLogout}
         >
-          Logout
+          🚪 Logout
         </button>
 
       </aside>
 
-      {/* Main Content */}
-      <main className="dashboard-main">
+      {/* =======================================================
+          MAIN
+      ======================================================== */}
 
-        {/* Header */}
-        <header className="dashboard-header">
+      <main className="candidate-details-main">
 
-          <div>
-            <p className="dashboard-label">
-              CANDIDATE DASHBOARD
+        {/* =====================================================
+            TOP BAR
+        ====================================================== */}
+
+        <div className="candidate-details-top">
+
+          <button
+            className="back-btn"
+            onClick={() =>
+              navigate("/recruiter/applicants")
+            }
+          >
+            ← Back to Applicants
+          </button>
+
+          <div className="recruiter-user">
+
+            <div className="recruiter-avatar">
+              {user?.fullName
+                ?.charAt(0)
+                ?.toUpperCase() || "R"}
+            </div>
+
+            <div>
+
+              <strong>
+                {user?.fullName || "Recruiter"}
+              </strong>
+
+              <span>
+                {user?.email}
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* =====================================================
+            CANDIDATE HERO
+        ====================================================== */}
+
+        <section className="candidate-hero">
+
+          <div className="candidate-big-avatar">
+            {candidate?.fullName
+              ?.charAt(0)
+              ?.toUpperCase() || "C"}
+          </div>
+
+          <div className="candidate-hero-info">
+
+            <p className="page-label">
+              Candidate Profile
             </p>
 
             <h1>
-              Welcome back, {user?.fullName || "Candidate"} 👋
+              {candidate?.fullName}
             </h1>
 
-            <p>
-              Track your profile, applications and AI interview
-              progress.
+            <p className="candidate-email">
+              ✉ {candidate?.email}
             </p>
+
+            <p className="candidate-location">
+              📍{" "}
+              {candidate?.location ||
+                "Location not provided"}
+            </p>
+
           </div>
 
-          <div className="profile-avatar">
-            {user?.fullName?.charAt(0).toUpperCase() || "C"}
-          </div>
+          <div className="candidate-profile-badge">
 
-        </header>
+            <span>
+              PROFILE
+            </span>
 
-        {/* Stats */}
-        <section className="dashboard-stats">
-
-          <div className="dashboard-stat-card">
-            <span>Profile Completion</span>
-
-            <strong>{profileCompletion}%</strong>
-
-            <div className="progress-bar">
-              <div
-                  className="progress-fill"
-                  style={{ width: `${profileCompletion}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="dashboard-stat-card">
-            <span>Jobs Matched</span>
-
-            <strong>{matchedJobsCount}</strong>
-
-            <small>
-              Based on your skills
-            </small>
-          </div>
-
-          <div className="dashboard-stat-card">
-            <span>Applications</span>
-
-            <strong>{applicationCount}</strong>
-
-            <small>
-              2 interviews scheduled
-            </small>
-          </div>
-
-          <div className="dashboard-stat-card">
-            <span>AI Interview Score</span>
-
-            <strong>86%</strong>
-
-            <small>
-              Excellent performance
-            </small>
-          </div>
-
-        </section>
-
-        {/* Recommended Jobs + Skills */}
-        <section className="dashboard-grid">
-
-          {/* Recommended Jobs */}
-          <div className="dashboard-card jobs-card">
-
-            <div className="card-heading">
-
-              <div>
-                <h2>
-                  Recommended Jobs
-                </h2>
-
-                <p>
-                  Jobs matching your profile
-                </p>
-              </div>
-
-              <button
-                onClick={() =>
-                  navigate("/recommended-jobs")
-                }
-              >
-                View All
-              </button>
-
-            </div>
-
-            {recommendedJobs.length === 0 ? (
-  <p>No matching jobs found.</p>
-) : (
-  recommendedJobs.slice(0, 3).map((job) => (
-    <div className="job-item" key={job.id}>
-
-      <div className="job-icon">
-        {job.company?.charAt(0).toUpperCase() || "J"}
-      </div>
-
-      <div className="job-info">
-        <h3>
-          {job.title}
-        </h3>
-
-        <p>
-          {job.company} • {job.location}
-        </p>
-      </div>
-
-      <div className="match-score">
-        <strong>
-          {job.matchScore ?? 0}%
-        </strong>
-
-        <span>
-          Match
-        </span>
-      </div>
-
-    </div>
-  ))
-)}
-
-            </div>
-
-         
-
-          {/* Skills */}
-          <div className="dashboard-card">
-
-            <div className="card-heading">
-
-              <div>
-                <h2>
-                  Your Skills
-                </h2>
-
-                <p>
-                  Skills detected from your profile
-                </p>
-              </div>
-
-            </div>
-
-           <div className="skills-container">
-
-  {profileSkills.length === 0 ? (
-    <span>No skills added yet</span>
-  ) : (
-    profileSkills.map((skill, index) => (
-      <span key={index}>
-        {skill}
-      </span>
-    ))
-  )}
-
-</div>
-            <button
-              className="secondary-button"
-              onClick={() =>
-                navigate("/my-profile")
-              }
-            >
-              Update Skills
-            </button>
+            <strong>
+              Candidate
+            </strong>
 
           </div>
 
         </section>
 
-        {/* Applications + AI Interview */}
-        <section className="dashboard-grid">
+        {/* =====================================================
+            CONTENT GRID
+        ====================================================== */}
 
-          {/* Applications */}
-          <div className="dashboard-card">
+        <div className="candidate-content-grid">
 
-            <div className="card-heading">
+          {/* ===================================================
+              LEFT COLUMN
+          ==================================================== */}
 
-              <div>
-                <h2>
-                  Recent Applications
-                </h2>
+          <div className="candidate-left">
 
-                <p>
-                  Your latest job applications
-                </p>
-              </div>
+            {/* =================================================
+                ATS RESUME ANALYSIS
+            ================================================== */}
 
-              <button
-                onClick={() =>
-                  navigate("/applications")
-                }
-              >
-                View All
-              </button>
+            <div className="candidate-card ats-card">
 
-            </div>
+              <div className="card-header">
 
-            {/* Real Applications */}
-            {recentApplications.length === 0 ? (
+                <div>
+                  <h2>
+                    AI Resume Analysis
+                  </h2>
 
-              <p>
-                No applications yet.
-              </p>
+                  <p>
+                    AI-powered candidate
+                    resume evaluation
+                  </p>
+                </div>
 
-            ) : (
+                <div className="ats-header-actions">
 
-              recentApplications.map((application) => (
+                  {resume && (
 
-                <div
-                  className="application-row"
-                  key={application.id}
-                >
+                    <button
+                      className="view-resume-btn"
+                      onClick={async () => {
 
-                  <div>
+                        try {
 
-                    <h3>
-                      {application.job?.title ||
-                        "Job Position"}
-                    </h3>
+                          if (!user?.token) {
+                            alert(
+                              "Recruiter session expired. Please login again."
+                            );
 
-                    <p>
-                      {application.job?.company ||
-                        "Company"}
-                    </p>
+                            navigate("/login");
+                            return;
+                          }
 
+                          const response =
+                            await fetch(
+                              `http://localhost:8080/api/candidate/resume/download/${id}`,
+                              {
+                                method: "GET",
+                                headers: {
+                                  Authorization:
+                                    `Bearer ${user.token}`,
+                                },
+                              }
+                            );
+
+                          if (!response.ok) {
+                            throw new Error(
+                              `Unable to open resume (${response.status})`
+                            );
+                          }
+
+                          const blob =
+                            await response.blob();
+
+                          const fileUrl =
+                            window.URL.createObjectURL(
+                              blob
+                            );
+
+                          window.open(
+                            fileUrl,
+                            "_blank"
+                          );
+
+                          setTimeout(() => {
+                            window.URL.revokeObjectURL(
+                              fileUrl
+                            );
+                          }, 60000);
+
+                        } catch (error) {
+
+                          console.error(
+                            "Resume view error:",
+                            error
+                          );
+
+                          alert(
+                            "Unable to open candidate resume."
+                          );
+                        }
+
+                      }}
+                    >
+                      📄 View Resume
+                    </button>
+
+                  )}
+
+                  <div className="card-icon">
                   </div>
-
-                  <span
-                    className={`status ${
-                      application.status?.toLowerCase() ||
-                      "applied"
-                    }`}
-                  >
-                    {application.status || "APPLIED"}
-                  </span>
 
                 </div>
 
-              ))
+              </div>
 
-            )}
+              {/* ATS DATA */}
+
+              {resumeAnalysis ? (
+
+                <>
+
+                  <div className="ats-score-section">
+
+                    <div className="ats-score-circle">
+
+                      <span>
+                        {resumeAnalysis.atsScore ?? 0}
+                      </span>
+
+                      <small>
+                        /100
+                      </small>
+
+                    </div>
+
+                    <div className="ats-score-info">
+
+                      <h3>
+
+                        {(resumeAnalysis.atsScore ?? 0) >= 80
+                          ? "Excellent Match"
+                          : (resumeAnalysis.atsScore ?? 0) >= 60
+                          ? "Good Match"
+                          : "Needs Improvement"}
+
+                      </h3>
+
+                      <p>
+                        Resume has been analyzed
+                        using Talmetry AI.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="ats-details">
+
+                    <div className="ats-detail-box">
+
+                      <h4>
+                        Extracted Skills
+                      </h4>
+
+                      <p>
+                        {resumeAnalysis.extractedSkills ||
+                          "No skills detected"}
+                      </p>
+
+                    </div>
+
+                    <div className="ats-detail-box">
+
+                      <h4>
+                        Strengths
+                      </h4>
+
+                      <p>
+                        {resumeAnalysis.strengths ||
+                          "No strengths available"}
+                      </p>
+
+                    </div>
+
+                    <div className="ats-detail-box">
+
+                      <h4>
+                        Weaknesses
+                      </h4>
+
+                      <p>
+                        {resumeAnalysis.weaknesses ||
+                          "No weaknesses available"}
+                      </p>
+
+                    </div>
+
+                    <div className="ats-detail-box">
+
+                      <h4>
+                        AI Suggestions
+                      </h4>
+
+                      <p>
+                        {resumeAnalysis.suggestions ||
+                          "No suggestions available"}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </>
+
+              ) : (
+
+                <div className="no-analysis">
+
+                  <span>
+                    📄
+                  </span>
+
+                  <h3>
+                    No ATS Analysis Available
+                  </h3>
+
+                  <p>
+                    This candidate has not
+                    analyzed their resume yet.
+                  </p>
+
+                </div>
+
+              )}
+
+            </div>
+
+            {/* =================================================
+                PROFESSIONAL INFORMATION
+            ================================================== */}
+
+            <section className="details-card">
+
+              <div className="details-card-header">
+
+                <div>
+
+                  <h2>
+                    Professional Information
+                  </h2>
+
+                  <p>
+                    Candidate's career details
+                  </p>
+
+                </div>
+
+                <span className="card-icon">
+                  💼
+                </span>
+
+              </div>
+
+              <div className="details-info-grid">
+
+                <div className="info-item">
+
+                  <span>
+                    Education
+                  </span>
+
+                  <strong>
+                    {candidate?.education ||
+                      "Not provided"}
+                  </strong>
+
+                </div>
+
+                <div className="info-item">
+
+                  <span>
+                    Experience
+                  </span>
+
+                  <strong>
+                    {candidate?.experience ||
+                      "Not provided"}
+                  </strong>
+
+                </div>
+
+                <div className="info-item">
+
+                  <span>
+                    Phone
+                  </span>
+
+                  <strong>
+                    {candidate?.phone ||
+                      "Not provided"}
+                  </strong>
+
+                </div>
+
+                <div className="info-item">
+
+                  <span>
+                    Location
+                  </span>
+
+                  <strong>
+                    {candidate?.location ||
+                      "Not provided"}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* =================================================
+                SKILLS
+            ================================================== */}
+
+            <section className="details-card">
+
+              <div className="details-card-header">
+
+                <div>
+
+                  <h2>
+                    Skills
+                  </h2>
+
+                  <p>
+                    Technical skills added
+                    by candidate
+                  </p>
+
+                </div>
+
+                <span className="card-icon">
+                  🛠️
+                </span>
+
+              </div>
+
+              {skills.length > 0 ? (
+
+                <div className="candidate-skills">
+
+                  {skills.map(
+                    (skill, index) => (
+
+                      <span
+                        key={index}
+                        className="skill-tag"
+                      >
+                        {skill}
+                      </span>
+
+                    )
+                  )}
+
+                </div>
+
+              ) : (
+
+                <div className="not-available">
+                  No skills added yet.
+                </div>
+
+              )}
+
+            </section>
+
+            {/* =================================================
+                APPLICATIONS
+            ================================================== */}
+
+            <section className="details-card">
+
+              <div className="details-card-header">
+
+                <div>
+
+                  <h2>
+                    Applications
+                  </h2>
+
+                  <p>
+                    Jobs applied by this candidate
+                  </p>
+
+                </div>
+
+                <span className="card-icon">
+                  📋
+                </span>
+
+              </div>
+
+              {applications.length === 0 ? (
+
+                <div className="not-available">
+                  No applications found
+                  for your jobs.
+                </div>
+
+              ) : (
+
+                <div className="candidate-applications">
+
+                  {applications.map(
+                    (application) => (
+
+                      <div
+                        className="candidate-application"
+                        key={application.id}
+                      >
+
+                        <div>
+
+                          <strong>
+                            {application.job?.title ||
+                              "Job Application"}
+                          </strong>
+
+                          <span>
+                            {application.job?.company ||
+                              "Company"}
+                          </span>
+
+                        </div>
+
+                        <span
+                          className={`candidate-status ${
+                            application.status?.toLowerCase() ||
+                            "applied"
+                          }`}
+                        >
+                          {application.status ||
+                            "APPLIED"}
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              )}
+
+            </section>
 
           </div>
 
-          {/* AI Interview */}
-          <div className="dashboard-card ai-interview-card">
+          {/* ===================================================
+              RIGHT COLUMN
+          ==================================================== */}
 
-            <p className="dashboard-label">
-              AI INTERVIEW
-            </p>
+          <div className="candidate-right">
 
-            <h2>
-              Ready for your next interview?
-            </h2>
+            {/* =================================================
+                CONTACT
+            ================================================== */}
 
-            <p>
-              Practice with Talmetry AI and get instant
-              feedback on your technical and communication
-              skills.
-            </p>
+            <section className="details-card">
+
+              <div className="details-card-header">
+
+                <div>
+
+                  <h2>
+                    Contact & Links
+                  </h2>
+
+                  <p>
+                    Professional profiles
+                  </p>
+
+                </div>
+
+                <span className="card-icon">
+                  🔗
+                </span>
+
+              </div>
+
+              <div className="profile-links">
+
+                {/* GITHUB */}
+
+                <div className="profile-link-item">
+
+                  <span className="link-icon">
+                    💻
+                  </span>
+
+                  <div>
+
+                    <span>
+                      GitHub
+                    </span>
+
+                    {candidate?.github ? (
+
+                      <a
+                        href={candidate.github}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View GitHub Profile ↗
+                      </a>
+
+                    ) : (
+
+                      <strong>
+                        Not provided
+                      </strong>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* LINKEDIN */}
+
+                <div className="profile-link-item">
+
+                  <span className="link-icon">
+                    💼
+                  </span>
+
+                  <div>
+
+                    <span>
+                      LinkedIn
+                    </span>
+
+                    {candidate?.linkedin ? (
+
+                      <a
+                        href={candidate.linkedin}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View LinkedIn Profile ↗
+                      </a>
+
+                    ) : (
+
+                      <strong>
+                        Not provided
+                      </strong>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* =================================================
+                RECRUITMENT SUMMARY
+            ================================================== */}
+
+            <section className="details-card recruitment-summary">
+
+              <div className="details-card-header">
+
+                <div>
+
+                  <h2>
+                    Recruitment Summary
+                  </h2>
+
+                  <p>
+                    Quick candidate overview
+                  </p>
+
+                </div>
+
+                <span className="card-icon">
+                  📊
+                </span>
+
+              </div>
+
+              <div className="summary-item">
+
+                <span>
+                  Total Applications
+                </span>
+
+                <strong>
+                  {applications.length}
+                </strong>
+
+              </div>
+
+              <div className="summary-item">
+
+                <span>
+                  Shortlisted
+                </span>
+
+                <strong>
+                  {
+                    applications.filter(
+                      (app) =>
+                        app.status ===
+                        "SHORTLISTED"
+                    ).length
+                  }
+                </strong>
+
+              </div>
+
+              <div className="summary-item">
+
+                <span>
+                  Rejected
+                </span>
+
+                <strong>
+                  {
+                    applications.filter(
+                      (app) =>
+                        app.status ===
+                        "REJECTED"
+                    ).length
+                  }
+                </strong>
+
+              </div>
+
+            </section>
+
+            {/* BACK */}
 
             <button
-              className="primary-button"
+              className="candidate-back-action"
               onClick={() =>
-                navigate("/ai-interview")
+                navigate("/recruiter/applicants")
               }
             >
-              Start AI Interview →
+              ← Back to Applicant List
             </button>
 
           </div>
 
-        </section>
+        </div>
 
       </main>
 
@@ -509,4 +1157,4 @@ function CandidateDashboard() {
   );
 }
 
-export default CandidateDashboard;
+export default CandidateDetails;

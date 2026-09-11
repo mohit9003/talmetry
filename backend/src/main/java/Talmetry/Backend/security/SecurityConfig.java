@@ -16,7 +16,8 @@ public class SecurityConfig {
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter
     ) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationFilter =
+                jwtAuthenticationFilter;
     }
 
     @Bean
@@ -25,17 +26,14 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-            // Disable CSRF for REST API
             .csrf(csrf -> csrf.disable())
 
-            // Enable CORS
             .cors(cors -> {})
 
-            // JWT based authentication
             .sessionManagement(session ->
-                session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
-                )
+                    session.sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS
+                    )
             )
 
             .authorizeHttpRequests(auth -> auth
@@ -43,76 +41,82 @@ public class SecurityConfig {
                 // ================= PUBLIC =================
 
                 .requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login"
+                        "/api/auth/register",
+                        "/api/auth/login"
                 ).permitAll()
 
-                // Anyone can view jobs
                 .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/jobs",
-                    "/api/jobs/open",
-                    "/api/jobs/*",
-                    "/api/jobs/recommended/**"
+                        HttpMethod.OPTIONS,
+                        "/**"
                 ).permitAll()
 
-                // CORS preflight
+                // ================= JOBS =================
+
                 .requestMatchers(
-                    HttpMethod.OPTIONS,
-                    "/**"
+                        "/api/jobs/recruiter/**"
+                ).hasRole("RECRUITER")
+
+                .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/jobs"
+                ).hasRole("RECRUITER")
+
+                .requestMatchers(
+                        HttpMethod.PUT,
+                        "/api/jobs/**"
+                ).hasRole("RECRUITER")
+
+                .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/api/jobs/**"
+                ).hasRole("RECRUITER")
+
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/jobs",
+                        "/api/jobs/open",
+                        "/api/jobs/*",
+                        "/api/jobs/recommended/**"
                 ).permitAll()
 
+                // ================= CANDIDATE =================
 
-                // ================= RECRUITER ONLY =================
-
-                // Create job
                 .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/jobs"
-                ).hasRole("RECRUITER")
-
-                // Delete job
-                .requestMatchers(
-                    HttpMethod.DELETE,
-                    "/api/jobs/**"
-                ).hasRole("RECRUITER")
-
-                // Recruiter analytics
-                .requestMatchers(
-                    "/api/recruiter/**"
-                ).hasRole("RECRUITER")
-
-
-                // ================= AUTHENTICATED USERS =================
-
-                // Candidate profile/resume etc.
-                .requestMatchers(
-                    "/api/candidate/**"
+                        "/api/candidate/**"
                 ).authenticated()
 
-                // Interview APIs
+                // ================= APPLICATIONS =================
+
                 .requestMatchers(
-                    "/api/interviews/**"
+                        "/api/applications/**"
                 ).authenticated()
 
-                // Applications temporarily remain public
-                // because their ownership checks will be added next
+                // ================= INTERVIEWS =================
+
                 .requestMatchers(
-    "/api/applications/**"
-).authenticated()
+                        "/api/interviews/**"
+                ).authenticated()
 
-.requestMatchers(
-    "/api/notifications/**"
-).authenticated()
+                // ================= NOTIFICATIONS =================
 
-                // Everything else requires login
+                .requestMatchers(
+                        "/api/notifications/**"
+                ).authenticated()
+
+                // ================= RECRUITER =================
+
+                .requestMatchers(
+                        "/api/recruiter/**"
+                ).hasRole("RECRUITER")
+
+                // ================= EVERYTHING ELSE =================
+
                 .anyRequest().authenticated()
             )
 
-            // JWT filter
             .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();

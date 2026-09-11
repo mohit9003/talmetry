@@ -698,3 +698,547 @@
     padding: 9px 14px;
   }
 }
+
+/* =========================================================
+   CANDIDATE DETAILS PAGE
+   ========================================================= */
+
+.candidate-details-page {
+  min-height: 100vh;
+  background: #f4f6ff;
+  padding: 40px 20px 70px;
+}
+
+.candidate-details-container {
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.back-button {
+  border: none;
+  background: white;
+  color: #4f46e5;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 22px;
+  box-shadow: 0 5px 18px rgba(30, 41, 59, 0.08);
+  transition: 0.2s ease;
+}
+
+.back-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(30, 41, 59, 0.12);
+}
+
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.candidate-details-card {
+  background: white;
+  border-radius: 24px;
+  padding: 38px;
+  box-shadow: 0 18px 50px rgba(30, 41, 59, 0.08);
+  border: 1px solid #e8eaf5;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.candidate-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e8eaf5;
+}
+
+.candidate-avatar {
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
+  flex-shrink: 0;
+}
+
+.page-eyebrow {
+  margin: 0 0 7px;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.candidate-header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.candidate-header p:last-child {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+
+.candidate-section {
+  padding: 30px 0;
+  border-bottom: 1px solid #eef0f6;
+}
+
+.candidate-section:last-child {
+  border-bottom: none;
+  padding-bottom: 5px;
+}
+
+.candidate-section h2 {
+  margin: 0 0 20px;
+  color: #111827;
+  font-size: 21px;
+}
+
+
+/* =========================================================
+   PROFILE GRID
+   ========================================================= */
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.candidate-grid > div {
+  background: #f8f9ff;
+  border: 1px solid #e8eaf8;
+  border-radius: 15px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: 0.2s ease;
+}
+
+.candidate-grid > div:hover {
+  transform: translateY(-2px);
+  border-color: #c7c9ff;
+}
+
+.candidate-grid span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.candidate-grid strong {
+  color: #172033;
+  font-size: 15px;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   SKILLS
+   ========================================================= */
+
+.candidate-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.candidate-skills span {
+  background: #eef0ff;
+  color: #4f46e5;
+  border: 1px solid #dfe2ff;
+  padding: 9px 15px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.candidate-skills p {
+  color: #64748b;
+  margin: 0;
+}
+
+
+/* =========================================================
+   PROFESSIONAL LINKS
+   ========================================================= */
+
+.candidate-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.candidate-links a {
+  text-decoration: none;
+  background: #111827;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.candidate-links a:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.candidate-links p {
+  color: #64748b;
+  margin: 0;
+}
+
+
+/* =========================================================
+   APPLICATIONS
+   ========================================================= */
+
+.candidate-applications {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.candidate-application-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  background: #fafbff;
+  border: 1px solid #e7e9f3;
+  border-radius: 16px;
+  transition: 0.2s ease;
+}
+
+.candidate-application-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
+
+.candidate-application-card h3 {
+  margin: 0 0 5px;
+  color: #111827;
+  font-size: 17px;
+}
+
+.candidate-application-card p {
+  margin: 0 0 7px;
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.candidate-application-card small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   APPLICATION STATUS
+   ========================================================= */
+
+.application-status {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.application-status.applied {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.application-status.shortlisted {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.application-status.rejected {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+
+/* =========================================================
+   EMPTY APPLICATIONS
+   ========================================================= */
+
+.empty-applications {
+  background: #f8f9ff;
+  border: 1px dashed #cbd0e1;
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   ERROR CARD
+   ========================================================= */
+
+.candidate-error-card {
+  background: white;
+  border-radius: 22px;
+  padding: 55px 30px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(30, 41, 59, 0.08);
+  border: 1px solid #e8eaf5;
+}
+
+.error-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+
+.candidate-error-card h2 {
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+.candidate-error-card p {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+.candidate-error-card button {
+  border: none;
+  background: #4f46e5;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.candidate-details-card > h2 {
+  text-align: center;
+  color: #475569;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .candidate-details-page {
+    padding: 25px 14px 50px;
+  }
+
+  .candidate-details-card {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .candidate-header {
+    align-items: flex-start;
+  }
+
+  .candidate-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 17px;
+    font-size: 25px;
+  }
+
+  .candidate-header h1 {
+    font-size: 24px;
+  }
+
+  .candidate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-application-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .application-status {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 450px) {
+
+  .candidate-header {
+    flex-direction: column;
+  }
+
+  .candidate-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .candidate-header h1 {
+    font-size: 22px;
+  }
+
+}
+
+/* =========================================================
+   JOB MATCH SCORE
+========================================================= */
+
+.job-match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.job-match-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid #e3e7f5;
+  border-radius: 16px;
+  background: #fafbff;
+}
+
+.job-match-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.job-match-info strong {
+  font-size: 17px;
+  color: #111827;
+}
+
+.job-match-info span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.job-match-info small {
+  color: #7c3aed;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.job-match-score {
+  min-width: 80px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.job-match-score strong {
+  font-size: 25px;
+  color: #4f46e5;
+}
+
+.job-match-score span {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   ATS HEADER
+========================================================= */
+
+.ats-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-resume-btn {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.view-resume-btn:hover {
+  background: #e0e7ff;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   APPLICATION DATE
+========================================================= */
+
+.candidate-application small {
+  display: block;
+  margin-top: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .job-match-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .job-match-score {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .ats-header-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+}

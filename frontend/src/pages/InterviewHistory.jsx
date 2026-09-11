@@ -17,28 +17,60 @@ function InterviewHistory() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/interviews/user/${user.id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch interview history");
+    const fetchInterviewHistory = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/interviews/user/${user.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.status === 401 ||
+            response.status === 403) {
+          throw new Error(
+            "Session expired or unauthorized"
+          );
         }
 
-        return response.json();
-      })
-      .then((data) => {
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch interview history"
+          );
+        }
+
+        const data = await response.json();
+
         setInterviews(data);
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Interview history error:", error);
-        setError("Unable to load interview history.");
+
+      } catch (error) {
+
+        console.error(
+          "Interview history error:",
+          error
+        );
+
+        setError(
+          "Unable to load interview history."
+        );
+
         setLoading(false);
-      });
-  }, [navigate, user?.id]);
+      }
+    };
+
+    fetchInterviewHistory();
+
+  }, [navigate, user?.id, user?.token]);
+
 
   if (!user) {
     return null;
   }
+
 
   return (
     <div className="interview-history-page">
@@ -46,6 +78,7 @@ function InterviewHistory() {
       <div className="history-header">
 
         <div>
+
           <p className="dashboard-label">
             TALMETRY AI
           </p>
@@ -55,18 +88,24 @@ function InterviewHistory() {
           </h1>
 
           <p>
-            View your previous interview performance and scores.
+            View your previous interview performance
+            and scores.
           </p>
+
         </div>
+
 
         <button
           className="back-dashboard-btn"
-          onClick={() => navigate("/candidate-dashboard")}
+          onClick={() =>
+            navigate("/candidate-dashboard")
+          }
         >
           ← Dashboard
         </button>
 
       </div>
+
 
       {loading && (
         <div className="history-state">
@@ -74,13 +113,18 @@ function InterviewHistory() {
         </div>
       )}
 
+
       {error && (
         <div className="history-state error">
           {error}
         </div>
       )}
 
-      {!loading && !error && interviews.length === 0 && (
+
+      {!loading &&
+        !error &&
+        interviews.length === 0 && (
+
         <div className="history-empty">
 
           <div className="empty-icon">
@@ -92,11 +136,14 @@ function InterviewHistory() {
           </h2>
 
           <p>
-            Complete your first AI interview to see your results here.
+            Complete your first AI interview
+            to see your results here.
           </p>
 
           <button
-            onClick={() => navigate("/ai-interview")}
+            onClick={() =>
+              navigate("/ai-interview")
+            }
           >
             Start AI Interview →
           </button>
@@ -104,7 +151,10 @@ function InterviewHistory() {
         </div>
       )}
 
-      {!loading && !error && interviews.length > 0 && (
+
+      {!loading &&
+        !error &&
+        interviews.length > 0 && (
 
         <div className="history-list">
 
@@ -118,6 +168,7 @@ function InterviewHistory() {
               <div className="history-card-top">
 
                 <div>
+
                   <span className="history-badge">
                     AI INTERVIEW
                   </span>
@@ -127,11 +178,15 @@ function InterviewHistory() {
                   </h2>
 
                   <p>
-                    Difficulty: {interview.difficulty}
+                    Difficulty:{" "}
+                    {interview.difficulty}
                   </p>
+
                 </div>
 
+
                 <div className="history-score">
+
                   <strong>
                     {interview.score}
                   </strong>
@@ -139,9 +194,11 @@ function InterviewHistory() {
                   <span>
                     /100
                   </span>
+
                 </div>
 
               </div>
+
 
               <div className="history-stats">
 
@@ -155,6 +212,7 @@ function InterviewHistory() {
                   </strong>
                 </div>
 
+
                 <div>
                   <span>
                     Communication
@@ -165,6 +223,7 @@ function InterviewHistory() {
                   </strong>
                 </div>
 
+
                 <div>
                   <span>
                     Problem Solving
@@ -174,6 +233,7 @@ function InterviewHistory() {
                     {interview.problemSolvingScore}%
                   </strong>
                 </div>
+
 
                 <div>
                   <span>
@@ -196,7 +256,6 @@ function InterviewHistory() {
           ))}
 
         </div>
-
       )}
 
     </div>

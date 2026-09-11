@@ -120,33 +120,28 @@ function AIInterview() {
       // -----------------------------------------
 
       const response = await fetch(
-        "http://localhost:8080/api/interviews/create",
-        {
-          method: "POST",
+  "http://localhost:8080/api/interviews/create",
+  {
+    method: "POST",
 
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Bearer ${user.token}`,
+    },
 
-          body: new URLSearchParams({
-            userId: String(user.id),
-
-            role: role,
-
-            difficulty: difficulty,
-
-            score: String(aiData.score),
-
-            technicalScore: String(aiData.technicalScore),
-
-            communicationScore: String(aiData.communicationScore),
-
-            problemSolvingScore: String(
-              aiData.problemSolvingScore
-            ),
-          }),
-        }
-      );
+    body: new URLSearchParams({
+      userId: String(user.id),
+      role: role,
+      difficulty: difficulty,
+      score: String(aiData.score),
+      technicalScore: String(aiData.technicalScore),
+      communicationScore: String(aiData.communicationScore),
+      problemSolvingScore: String(
+        aiData.problemSolvingScore
+      ),
+    }),
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to save interview");

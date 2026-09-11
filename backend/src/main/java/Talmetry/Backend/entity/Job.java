@@ -1,5 +1,6 @@
 package Talmetry.Backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -123,8 +124,9 @@ public class Job {
         this.status = status;
     }
 
-    // ================= RECRUITER GETTER/SETTER =================
+    // ================= RECRUITER =================
 
+    @JsonIgnore
     public User getRecruiter() {
         return recruiter;
     }

@@ -38,6 +38,10 @@ public class ApplicationController {
 
         User loggedInUser = getLoggedInUser(authentication);
 
+        if (loggedInUser.getRole() != User.Role.CANDIDATE) {
+            return ResponseEntity.status(403).build();
+        }
+
         if (!loggedInUser.getId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }
@@ -51,7 +55,8 @@ public class ApplicationController {
         return ResponseEntity.ok(application);
     }
 
-    // ================= CANDIDATE APPLICATIONS =================
+
+    // ================= CANDIDATE OWN APPLICATIONS =================
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Application>> getUserApplications(
@@ -61,6 +66,10 @@ public class ApplicationController {
 
         User loggedInUser = getLoggedInUser(authentication);
 
+        if (loggedInUser.getRole() != User.Role.CANDIDATE) {
+            return ResponseEntity.status(403).build();
+        }
+
         return ResponseEntity.ok(
                 applicationService.getUserApplications(
                         loggedInUser.getId(),
@@ -68,6 +77,31 @@ public class ApplicationController {
                 )
         );
     }
+
+
+    // ================= RECRUITER: CANDIDATE APPLICATIONS =================
+
+    @GetMapping("/candidate/{candidateId}")
+    public ResponseEntity<List<Application>> getCandidateApplications(
+            @PathVariable Long candidateId,
+            Authentication authentication
+    ) {
+
+        User recruiter = getLoggedInUser(authentication);
+
+        if (recruiter.getRole() != User.Role.RECRUITER) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                applicationService
+                        .getCandidateApplicationsForRecruiter(
+                                recruiter.getId(),
+                                candidateId
+                        )
+        );
+    }
+
 
     // ================= JOB APPLICANTS =================
 
@@ -91,6 +125,7 @@ public class ApplicationController {
         );
     }
 
+
     // ================= GET APPLICATION =================
 
     @GetMapping("/{id}")
@@ -108,6 +143,7 @@ public class ApplicationController {
                 )
         );
     }
+
 
     // ================= UPDATE STATUS =================
 
@@ -133,6 +169,7 @@ public class ApplicationController {
 
         return ResponseEntity.ok(application);
     }
+
 
     // ================= HELPER =================
 

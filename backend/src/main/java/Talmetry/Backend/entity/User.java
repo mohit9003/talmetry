@@ -1,5 +1,6 @@
 package Talmetry.Backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +16,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String password;
 
@@ -29,7 +31,12 @@ public class User {
     public User() {
     }
 
-    public User(String fullName, String email, String password, Role role) {
+    public User(
+            String fullName,
+            String email,
+            String password,
+            Role role
+    ) {
         this.fullName = fullName;
         this.email = email;
         this.password = password;

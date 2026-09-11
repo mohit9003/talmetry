@@ -23,21 +23,49 @@ public class AuthController {
     public AuthController(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
-
+            JwtService jwtService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(
+            @RequestBody User user
+    ) {
 
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
+        if (user.getEmail() == null ||
+                user.getEmail().trim().isEmpty()) {
+
+            return ResponseEntity.badRequest()
+                    .body("Email is required");
+        }
+
+        if (user.getPassword() == null ||
+                user.getPassword().length() < 6) {
+
+            return ResponseEntity.badRequest()
+                    .body("Password must be at least 6 characters");
+        }
+
+        if (user.getRole() == null) {
+
+            return ResponseEntity.badRequest()
+                    .body("Role is required");
+        }
+
+        String email = user.getEmail()
+                .trim()
+                .toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+
+            return ResponseEntity.badRequest()
                     .body("Email already registered");
         }
+
+        user.setEmail(email);
 
         user.setPassword(
                 passwordEncoder.encode(user.getPassword())
@@ -55,30 +83,45 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody User loginUser) {
+            @RequestBody Map<String, String> loginRequest
+    ) {
+
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
+
+        if (email == null ||
+                email.trim().isEmpty() ||
+                password == null ||
+                password.isEmpty()) {
+
+            return ResponseEntity.badRequest()
+                    .body("Email and password are required");
+        }
+
+        email = email.trim().toLowerCase();
 
         User user = userRepository
-                .findByEmail(loginUser.getEmail())
+                .findByEmail(email)
                 .orElse(null);
 
         if (user == null) {
-            return ResponseEntity
-                    .badRequest()
+
+            return ResponseEntity.badRequest()
                     .body("Invalid email or password");
         }
 
         if (!passwordEncoder.matches(
-                loginUser.getPassword(),
-                user.getPassword())) {
+                password,
+                user.getPassword()
+        )) {
 
-            return ResponseEntity
-                    .badRequest()
+            return ResponseEntity.badRequest()
                     .body("Invalid email or password");
         }
 
-        // Generate JWT token
         String token = jwtService.generateToken(
                 user.getEmail(),
                 user.getRole().name()

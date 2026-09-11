@@ -2753,3 +2753,241 @@ body {
     padding: 50px 20px;
   }
 }
+
+/* =========================================================
+   FINAL CANDIDATE DETAILS LAYOUT FIX
+   ========================================================= */
+
+.candidate-details-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #f4f6ff;
+  padding: 40px 24px 80px;
+  box-sizing: border-box;
+}
+
+.candidate-details-container {
+  width: 100%;
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+}
+
+.candidate-details-card {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 42px 48px;
+  border: 1px solid #e7e9f2;
+  box-shadow: 0 18px 50px rgba(30, 41, 59, 0.08);
+}
+
+/* Header */
+.candidate-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e7e9f2;
+}
+
+.candidate-header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.candidate-header p {
+  margin-top: 8px;
+  color: #64748b;
+}
+
+/* Profile section */
+.candidate-section {
+  width: 100%;
+  padding: 32px 0;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.candidate-section h2 {
+  margin: 0 0 22px;
+  font-size: 23px;
+  color: #111827;
+}
+
+/* Information cards */
+.candidate-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.candidate-grid > div {
+  min-width: 0;
+  background: #f8f9ff;
+  border: 1px solid #e3e6f3;
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.candidate-grid span {
+  display: block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.candidate-grid strong {
+  display: block;
+  color: #172033;
+  font-size: 16px;
+  word-break: break-word;
+}
+
+/* Skills */
+.candidate-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.candidate-skills span {
+  background: #eef0ff;
+  color: #4f46e5;
+  border: 1px solid #d9ddff;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Links */
+.candidate-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.candidate-links a {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 11px;
+  background: #111827;
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Applications */
+.candidate-applications {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.candidate-application-card {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #fafbff;
+  border: 1px solid #e4e7f0;
+  border-radius: 16px;
+}
+
+.candidate-application-card h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: #111827;
+}
+
+.candidate-application-card p {
+  margin: 0 0 6px;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.candidate-application-card small {
+  color: #64748b;
+}
+
+/* Status */
+.application-status {
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.application-status.applied {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.application-status.shortlisted {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.application-status.rejected {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Back button */
+.candidate-details-container > .back-button {
+  margin-bottom: 24px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  .candidate-details-page {
+    padding: 25px 15px 60px;
+  }
+
+  .candidate-details-card {
+    padding: 30px 24px;
+  }
+
+  .candidate-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 550px) {
+
+  .candidate-details-card {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .candidate-header {
+    align-items: flex-start;
+  }
+
+  .candidate-header h1 {
+    font-size: 25px;
+  }
+
+  .candidate-application-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

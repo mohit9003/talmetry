@@ -29,7 +29,11 @@ function Login() {
         }
       );
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+
+const data = contentType && contentType.includes("application/json")
+  ? await response.json()
+  : await response.text();
 
       if (!response.ok) {
         setMessage(
@@ -64,10 +68,10 @@ function Login() {
         }
       }, 500);
 
-    } catch (error) {
-      console.error("Login error:", error);
-      setMessage("Backend server is not running.");
-    }
+   } catch (error) {
+  console.error("Login error:", error);
+  setMessage(`Login request failed: ${error.message}`);
+}
   };
 
   return (

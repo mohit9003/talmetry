@@ -13,14 +13,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.stereotype.Component;
-
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -34,67 +34,80 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return false;
-    }
-
-    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String authHeader =
+                request.getHeader("Authorization");
 
-        // No JWT token
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        System.out.println(
+                "AUTH HEADER: " + authHeader
+        );
+
+        if (authHeader == null ||
+                !authHeader.startsWith("Bearer ")) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token =
+                authHeader.substring(7).trim();
 
         try {
 
-            // Extract email from JWT
-            String email = jwtService.extractEmail(token);
+            String email =
+                    jwtService.extractEmail(token);
 
-            // Find user from database
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() ->
-                            new RuntimeException("User not found")
-                    );
+            User user =
+                    userRepository.findByEmail(email)
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "User not found"
+                                    )
+                            );
 
-            // Get actual role from database
-            String role = "ROLE_" + user.getRole().name();
+            String authority =
+                    "ROLE_" + user.getRole().name();
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
                             List.of(
-                                    new SimpleGrantedAuthority(role)
+                                    new SimpleGrantedAuthority(
+                                            authority
+                                    )
                             )
                     );
 
             SecurityContextHolder
                     .getContext()
-                    .setAuthentication(authentication);
+                    .setAuthentication(
+                            authentication
+                    );
 
             System.out.println(
-                    "JWT authenticated: "
+                    "JWT SUCCESS: "
                             + email
                             + " | "
-                            + role
+                            + authority
             );
 
         } catch (Exception e) {
 
             System.out.println(
-                    "JWT validation failed: "
+                    "JWT FAILED: "
+                            + e.getClass().getSimpleName()
+                            + " | "
                             + e.getMessage()
             );
+
+            SecurityContextHolder
+                    .clearContext();
         }
 
         filterChain.doFilter(request, response);
