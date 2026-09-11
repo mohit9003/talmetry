@@ -1,0 +1,51 @@
+services:
+
+  postgres:
+    image: postgres:18
+    container_name: talmetry-postgres
+    environment:
+      POSTGRES_DB: talmetry_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: talmetry123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: talmetry-ai
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    container_name: talmetry-backend
+    depends_on:
+      - postgres
+      - ai-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/talmetry_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: talmetry123
+      JWT_SECRET: TalmetrySuperSecretKeyForJWTAuthentication2026Secure
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: talmetry-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
