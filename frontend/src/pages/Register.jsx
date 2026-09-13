@@ -1,9 +1,10 @@
-﻿import { API_URL, AI_URL } from "../api";
+﻿import { API_URL } from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [role, setRole] = useState("CANDIDATE");
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -33,27 +34,50 @@ function Register() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...formData,
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
             role: role,
           }),
         }
       );
 
-      const data = await response.json();
+      // Backend may return either JSON or plain text
+      const contentType = response.headers.get("content-type") || "";
+
+      let data;
+
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
 
       if (!response.ok) {
-        setMessage(data);
+        setMessage(
+          typeof data === "string"
+            ? data
+            : data.message || "Registration failed."
+        );
         return;
       }
 
-      setMessage("Registration successful!");
+      setMessage(
+        typeof data === "string"
+          ? data
+          : data.message || "Registration successful!"
+      );
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
 
     } catch (error) {
-      setMessage("Backend server is not running.");
+      console.error("Registration error:", error);
+
+      setMessage(
+        "Unable to connect to the server. Please try again."
+      );
     }
   };
 
@@ -62,9 +86,11 @@ function Register() {
       <div className="auth-card">
 
         <h1>Create Account</h1>
+
         <p>Join Talmetry and get started.</p>
 
         <div className="role-selection">
+
           <button
             type="button"
             className={role === "CANDIDATE" ? "active" : ""}
@@ -80,6 +106,7 @@ function Register() {
           >
             Recruiter
           </button>
+
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -112,13 +139,19 @@ function Register() {
           />
 
           <button type="submit">
-            Create {role === "CANDIDATE" ? "Candidate" : "Recruiter"} Account
+            Create{" "}
+            {role === "CANDIDATE"
+              ? "Candidate"
+              : "Recruiter"}{" "}
+            Account
           </button>
 
         </form>
 
         {message && (
-          <p className="auth-message">{message}</p>
+          <p className="auth-message">
+            {message}
+          </p>
         )}
 
       </div>
@@ -127,4 +160,3 @@ function Register() {
 }
 
 export default Register;
-
