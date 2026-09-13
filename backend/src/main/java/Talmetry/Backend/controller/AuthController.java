@@ -13,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -29,6 +28,8 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
+
+    // ================= REGISTER =================
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
@@ -68,29 +69,52 @@ public class AuthController {
         user.setEmail(email);
 
         user.setPassword(
-                passwordEncoder.encode(user.getPassword())
+                passwordEncoder.encode(
+                        user.getPassword()
+                )
         );
 
-        User savedUser = userRepository.save(user);
+        User savedUser =
+                userRepository.save(user);
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response =
+                new HashMap<>();
 
-        response.put("id", savedUser.getId());
-        response.put("fullName", savedUser.getFullName());
-        response.put("email", savedUser.getEmail());
-        response.put("role", savedUser.getRole());
+        response.put(
+                "id",
+                savedUser.getId()
+        );
+
+        response.put(
+                "fullName",
+                savedUser.getFullName()
+        );
+
+        response.put(
+                "email",
+                savedUser.getEmail()
+        );
+
+        response.put(
+                "role",
+                savedUser.getRole()
+        );
 
         return ResponseEntity.ok(response);
     }
 
+    // ================= LOGIN =================
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody Map<String, String> loginRequest
     ) {
 
-        String email = loginRequest.get("email");
-        String password = loginRequest.get("password");
+        String email =
+                loginRequest.get("email");
+
+        String password =
+                loginRequest.get("password");
 
         if (email == null ||
                 email.trim().isEmpty() ||
@@ -98,19 +122,26 @@ public class AuthController {
                 password.isEmpty()) {
 
             return ResponseEntity.badRequest()
-                    .body("Email and password are required");
+                    .body(
+                            "Email and password are required"
+                    );
         }
 
-        email = email.trim().toLowerCase();
+        email = email
+                .trim()
+                .toLowerCase();
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElse(null);
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElse(null);
 
         if (user == null) {
 
             return ResponseEntity.badRequest()
-                    .body("Invalid email or password");
+                    .body(
+                            "Invalid email or password"
+                    );
         }
 
         if (!passwordEncoder.matches(
@@ -119,21 +150,44 @@ public class AuthController {
         )) {
 
             return ResponseEntity.badRequest()
-                    .body("Invalid email or password");
+                    .body(
+                            "Invalid email or password"
+                    );
         }
 
-        String token = jwtService.generateToken(
-                user.getEmail(),
-                user.getRole().name()
+        String token =
+                jwtService.generateToken(
+                        user.getEmail(),
+                        user.getRole().name()
+                );
+
+        Map<String, Object> response =
+                new HashMap<>();
+
+        response.put(
+                "token",
+                token
         );
 
-        Map<String, Object> response = new HashMap<>();
+        response.put(
+                "id",
+                user.getId()
+        );
 
-        response.put("token", token);
-        response.put("id", user.getId());
-        response.put("fullName", user.getFullName());
-        response.put("email", user.getEmail());
-        response.put("role", user.getRole());
+        response.put(
+                "fullName",
+                user.getFullName()
+        );
+
+        response.put(
+                "email",
+                user.getEmail()
+        );
+
+        response.put(
+                "role",
+                user.getRole()
+        );
 
         return ResponseEntity.ok(response);
     }
