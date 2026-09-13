@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Applicants.css";
@@ -34,7 +35,7 @@ function Applicants() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/jobs");
+      const response = await fetch(`${API_URL}/api/jobs`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch jobs");
@@ -60,7 +61,7 @@ function Applicants() {
 
     try {
       const response = await fetch(
-  `http://localhost:8080/api/applications/job/${jobId}`,
+  `${API_URL}/api/applications/job/${jobId}`,
   {
     headers: {
       Authorization: `Bearer ${user.token}`,
@@ -86,7 +87,7 @@ function Applicants() {
 
           try {
             const matchResponse = await fetch(
-              `http://localhost:8080/api/jobs/recommended/${candidateId}`
+              `${API_URL}/api/jobs/recommended/${candidateId}`
             );
 
             let matchScore = null;
@@ -105,7 +106,7 @@ function Applicants() {
             let atsScore = null;
 
             const analysisResponse = await fetch(
-              `http://localhost:8080/api/candidate/resume-analysis/candidate/${candidateId}`
+              `${API_URL}/api/candidate/resume-analysis/candidate/${candidateId}`
             );
 
             if (analysisResponse.ok) {
@@ -164,7 +165,7 @@ function Applicants() {
 
     try {
       const response = await fetch(
-  `http://localhost:8080/api/applications/${applicationId}/status?status=${status}`,
+  `${API_URL}/api/applications/${applicationId}/status?status=${status}`,
   {
     method: "PUT",
     headers: {
@@ -238,19 +239,19 @@ function Applicants() {
         <nav className="recruiter-nav">
 
           <button onClick={() => navigate("/recruiter-dashboard")}>
-            📊 Dashboard
+            ðŸ“Š Dashboard
           </button>
 
           <button onClick={() => navigate("/recruiter/jobs")}>
-            💼 Manage Jobs
+            ðŸ’¼ Manage Jobs
           </button>
 
           <button onClick={() => navigate("/recruiter/create-job")}>
-            ➕ Create Job
+            âž• Create Job
           </button>
 
           <button className="active">
-            👥 Applicants
+            ðŸ‘¥ Applicants
           </button>
 
         </nav>
@@ -259,7 +260,7 @@ function Applicants() {
           className="recruiter-logout"
           onClick={handleLogout}
         >
-          🚪 Logout
+          ðŸšª Logout
         </button>
 
       </aside>
@@ -325,7 +326,7 @@ function Applicants() {
                 key={job.id}
                 value={job.id}
               >
-                {job.title} — {job.company}
+                {job.title} â€” {job.company}
               </option>
             ))}
           </select>
@@ -344,7 +345,7 @@ function Applicants() {
           <div className="applicants-empty">
 
             <div className="empty-icon">
-              👥
+              ðŸ‘¥
             </div>
 
             <h2>
@@ -363,7 +364,7 @@ function Applicants() {
           <div className="applicants-empty">
 
             <div className="empty-icon">
-              ⏳
+              â³
             </div>
 
             <h2>
@@ -390,7 +391,7 @@ function Applicants() {
                     {applicants.length} applicant
                     {applicants.length !== 1
                       ? "s"
-                      : ""} found • Candidates are ranked by AI skill match
+                      : ""} found â€¢ Candidates are ranked by AI skill match
                   </p>
                 </div>
 
@@ -405,7 +406,7 @@ function Applicants() {
                 <div className="applicants-empty small">
 
                   <div className="empty-icon">
-                    📭
+                    ðŸ“­
                   </div>
 
                   <h2>
@@ -462,7 +463,7 @@ function Applicants() {
                               fontWeight: "800",
                             }}
                           >
-                            #{index + 1} • {getFinalScore(application)}%{" "}
+                            #{index + 1} â€¢ {getFinalScore(application)}%{" "}
                             {index === 0 ? "Top Candidate" : "Score"}
                           </div>
                         )}
@@ -518,7 +519,7 @@ function Applicants() {
                                     fontWeight: "700",
                                   }}
                                 >
-                                  🎯 Match {matchScores[application.id]}%
+                                  ðŸŽ¯ Match {matchScores[application.id]}%
                                 </span>
                               )}
 
@@ -534,7 +535,7 @@ function Applicants() {
                                     fontWeight: "700",
                                   }}
                                 >
-                                  📄 ATS {atsScores[application.id]}%
+                                  ðŸ“„ ATS {atsScores[application.id]}%
                                 </span>
                               )}
 
@@ -549,7 +550,7 @@ function Applicants() {
                                   fontWeight: "800",
                                 }}
                               >
-                                ⭐ Final {getFinalScore(application)}%
+                                â­ Final {getFinalScore(application)}%
                               </span>
                             )}
                           </div>
@@ -585,7 +586,7 @@ function Applicants() {
                               {updatingId ===
                               application.id
                                 ? "Updating..."
-                                : "✓ Shortlist"}
+                                : "âœ“ Shortlist"}
                             </button>
                           )}
 
@@ -606,7 +607,7 @@ function Applicants() {
                               {updatingId ===
                               application.id
                                 ? "Updating..."
-                                : "✕ Reject"}
+                                : "âœ• Reject"}
                             </button>
                           )}
 
@@ -642,3 +643,4 @@ function Applicants() {
 }
 
 export default Applicants;
+

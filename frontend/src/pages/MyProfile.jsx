@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 
 function MyProfile() {
@@ -28,7 +29,7 @@ function MyProfile() {
 
       try {
         const response = await fetch(
-          `http://localhost:8080/api/candidate/profile/${user.id}`,
+          `${API_URL}/api/candidate/profile/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -97,7 +98,7 @@ function MyProfile() {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/candidate/profile/${user.id}`,
+        `${API_URL}/api/candidate/profile/${user.id}`,
         {
           method: profileExists ? "PUT" : "POST",
 
@@ -365,3 +366,4 @@ function MyProfile() {
 }
 
 export default MyProfile;
+

@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +17,7 @@ function RecommendedJobs() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/jobs/recommended/${user.id}`)
+    fetch(`${API_URL}/api/jobs/recommended/${user.id}`)
       .then(async (response) => {
         if (!response.ok) {
           const message = await response.text();
@@ -52,7 +53,7 @@ function RecommendedJobs() {
           className="back-dashboard-button"
           onClick={() => navigate("/candidate-dashboard")}
         >
-          ← Dashboard
+          â† Dashboard
         </button>
       </div>
 
@@ -98,9 +99,9 @@ function RecommendedJobs() {
 
             <div className="job-info">
 
-              <span>📍 {job.location}</span>
-              <span>💼 {job.jobType}</span>
-              <span>💰 {job.salary}</span>
+              <span>ðŸ“ {job.location}</span>
+              <span>ðŸ’¼ {job.jobType}</span>
+              <span>ðŸ’° {job.salary}</span>
 
             </div>
 
@@ -148,3 +149,4 @@ function RecommendedJobs() {
 }
 
 export default RecommendedJobs;
+

@@ -17,8 +17,8 @@ backend/target/
 .DS_Store
 Thumbs.db
 
+# Backend configuration / secrets
 backend/src/main/resources/application.properties
-
 
 # Uploaded resumes
 backend/uploads/

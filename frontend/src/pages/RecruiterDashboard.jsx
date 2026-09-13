@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./RecruiterDashboard.css";
@@ -43,7 +44,7 @@ function RecruiterDashboard() {
   const fetchJobs = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/jobs"
+        `${API_URL}/api/jobs`
       );
 
       if (!response.ok) {
@@ -65,7 +66,7 @@ function RecruiterDashboard() {
       setAnalyticsLoading(true);
 
       const response = await fetch(
-        "http://localhost:8080/api/recruiter/analytics",
+        `${API_URL}/api/recruiter/analytics`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ function RecruiterDashboard() {
         <nav className="sidebar-nav">
 
           <button className="active">
-            <span>▦</span>
+            <span>â–¦</span>
             Dashboard
           </button>
 
@@ -135,7 +136,7 @@ function RecruiterDashboard() {
               navigate("/recruiter/jobs")
             }
           >
-            <span>💼</span>
+            <span>ðŸ’¼</span>
             Manage Jobs
           </button>
 
@@ -144,7 +145,7 @@ function RecruiterDashboard() {
               navigate("/recruiter/create-job")
             }
           >
-            <span>＋</span>
+            <span>ï¼‹</span>
             Create Job
           </button>
 
@@ -153,7 +154,7 @@ function RecruiterDashboard() {
               navigate("/recruiter/applicants")
             }
           >
-            <span>👥</span>
+            <span>ðŸ‘¥</span>
             Applicants
           </button>
 
@@ -166,7 +167,7 @@ function RecruiterDashboard() {
             onClick={handleLogout}
             className="logout-btn"
           >
-            <span>↪</span>
+            <span>â†ª</span>
             Logout
           </button>
 
@@ -190,7 +191,7 @@ function RecruiterDashboard() {
             </p>
 
             <h1>
-              Welcome back, {user.fullName} 👋
+              Welcome back, {user.fullName} ðŸ‘‹
             </h1>
 
             <p>
@@ -233,7 +234,7 @@ function RecruiterDashboard() {
           <div className="stat-card">
 
             <div className="stat-icon">
-              💼
+              ðŸ’¼
             </div>
 
             <div>
@@ -242,7 +243,7 @@ function RecruiterDashboard() {
               </span>
 
               <strong>
-                {analyticsLoading ? "—" : analytics.totalJobs}
+                {analyticsLoading ? "â€”" : analytics.totalJobs}
               </strong>
             </div>
 
@@ -252,7 +253,7 @@ function RecruiterDashboard() {
           <div className="stat-card">
 
             <div className="stat-icon">
-              🟢
+              ðŸŸ¢
             </div>
 
             <div>
@@ -261,7 +262,7 @@ function RecruiterDashboard() {
               </span>
 
               <strong>
-                {analyticsLoading ? "—" : analytics.activeJobs}
+                {analyticsLoading ? "â€”" : analytics.activeJobs}
               </strong>
             </div>
 
@@ -271,7 +272,7 @@ function RecruiterDashboard() {
           <div className="stat-card">
 
             <div className="stat-icon">
-              👥
+              ðŸ‘¥
             </div>
 
             <div>
@@ -280,7 +281,7 @@ function RecruiterDashboard() {
               </span>
 
               <strong>
-                {analyticsLoading ? "—" : analytics.totalApplicants}
+                {analyticsLoading ? "â€”" : analytics.totalApplicants}
               </strong>
             </div>
 
@@ -290,7 +291,7 @@ function RecruiterDashboard() {
           <div className="stat-card">
 
             <div className="stat-icon">
-              ⭐
+              â­
             </div>
 
             <div>
@@ -299,7 +300,7 @@ function RecruiterDashboard() {
               </span>
 
               <strong>
-                {analyticsLoading ? "—" : analytics.shortlisted}
+                {analyticsLoading ? "â€”" : analytics.shortlisted}
               </strong>
             </div>
 
@@ -356,7 +357,7 @@ function RecruiterDashboard() {
                   {label}
                 </span>
                 <div style={{ fontSize: "28px", fontWeight: "800", marginTop: "8px" }}>
-                  {analyticsLoading ? "—" : value}
+                  {analyticsLoading ? "â€”" : value}
                 </div>
                 <div
                   style={{
@@ -401,7 +402,7 @@ function RecruiterDashboard() {
                 Selection Rate
               </span>
               <div style={{ fontSize: "24px", fontWeight: "800", marginTop: "4px" }}>
-                {analyticsLoading ? "—" : `${analytics.selectionRate.toFixed(2)}%`}
+                {analyticsLoading ? "â€”" : `${analytics.selectionRate.toFixed(2)}%`}
               </div>
             </div>
 
@@ -417,7 +418,7 @@ function RecruiterDashboard() {
                 cursor: "pointer",
               }}
             >
-              Review Applicants →
+              Review Applicants â†’
             </button>
           </div>
         </section>
@@ -450,7 +451,7 @@ function RecruiterDashboard() {
               }
             >
               <span className="action-icon">
-                ＋
+                ï¼‹
               </span>
 
               <div>
@@ -464,7 +465,7 @@ function RecruiterDashboard() {
               </div>
 
               <b>
-                →
+                â†’
               </b>
             </button>
 
@@ -475,7 +476,7 @@ function RecruiterDashboard() {
               }
             >
               <span className="action-icon">
-                💼
+                ðŸ’¼
               </span>
 
               <div>
@@ -489,7 +490,7 @@ function RecruiterDashboard() {
               </div>
 
               <b>
-                →
+                â†’
               </b>
             </button>
 
@@ -500,7 +501,7 @@ function RecruiterDashboard() {
               }
             >
               <span className="action-icon">
-                👥
+                ðŸ‘¥
               </span>
 
               <div>
@@ -514,7 +515,7 @@ function RecruiterDashboard() {
               </div>
 
               <b>
-                →
+                â†’
               </b>
             </button>
 
@@ -548,7 +549,7 @@ function RecruiterDashboard() {
                 navigate("/recruiter/jobs")
               }
             >
-              View All →
+              View All â†’
             </button>
 
           </div>
@@ -565,7 +566,7 @@ function RecruiterDashboard() {
             <div className="empty-dashboard-card">
 
               <div className="empty-icon">
-                💼
+                ðŸ’¼
               </div>
 
               <h3>
@@ -601,7 +602,7 @@ function RecruiterDashboard() {
                   <div className="job-main-info">
 
                     <div className="job-icon">
-                      💼
+                      ðŸ’¼
                     </div>
 
                     <div>
@@ -612,7 +613,7 @@ function RecruiterDashboard() {
 
                       <p>
                         {job.company}
-                        {" • "}
+                        {" â€¢ "}
                         {job.location}
                       </p>
 
@@ -656,3 +657,4 @@ function RecruiterDashboard() {
 }
 
 export default RecruiterDashboard;
+

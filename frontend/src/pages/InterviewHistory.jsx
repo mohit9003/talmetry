@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./InterviewHistory.css";
@@ -20,7 +21,7 @@ function InterviewHistory() {
     const fetchInterviewHistory = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/interviews/user/${user.id}`,
+          `${API_URL}/api/interviews/user/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -101,7 +102,7 @@ function InterviewHistory() {
             navigate("/candidate-dashboard")
           }
         >
-          ← Dashboard
+          â† Dashboard
         </button>
 
       </div>
@@ -128,7 +129,7 @@ function InterviewHistory() {
         <div className="history-empty">
 
           <div className="empty-icon">
-            🎯
+            ðŸŽ¯
           </div>
 
           <h2>
@@ -145,7 +146,7 @@ function InterviewHistory() {
               navigate("/ai-interview")
             }
           >
-            Start AI Interview →
+            Start AI Interview â†’
           </button>
 
         </div>
@@ -263,3 +264,4 @@ function InterviewHistory() {
 }
 
 export default InterviewHistory;
+

@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -81,7 +82,7 @@ function Resume() {
       try {
         // Fetch uploaded resume
         const resumeResponse = await fetch(
-          `http://localhost:8080/api/candidate/resume/${user.id}`,
+          `${API_URL}/api/candidate/resume/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -95,7 +96,7 @@ function Resume() {
 
           // Fetch existing analysis
           const analysisResponse = await fetch(
-            `http://localhost:8080/api/candidate/resume-analysis/${resumeData.id}`,
+            `${API_URL}/api/candidate/resume-analysis/${resumeData.id}`,
             {
               headers: {
                 Authorization: `Bearer ${user.token}`,
@@ -164,7 +165,7 @@ setAnalysis(normalizeAnalysis(analysisData));
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/candidate/resume/${user.id}`,
+        `${API_URL}/api/candidate/resume/${user.id}`,
         {
           method: "POST",
           headers: {
@@ -196,7 +197,7 @@ setAnalysis(normalizeAnalysis(analysisData));
       setMessage("");
 
       const response = await fetch(
-        `http://localhost:8080/api/candidate/resume/download/${user.id}`,
+        `${API_URL}/api/candidate/resume/download/${user.id}`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -224,11 +225,11 @@ setAnalysis(normalizeAnalysis(analysisData));
   }
 
   setAnalyzing(true);
-  setMessage("🤖 AI is analyzing your resume...");
+  setMessage("ðŸ¤– AI is analyzing your resume...");
 
   try {
     const response = await fetch(
-      `http://localhost:8080/api/candidate/resume-analysis/${uploadedResume.id}`,
+      `${API_URL}/api/candidate/resume-analysis/${uploadedResume.id}`,
       {
         method: "POST",
         headers: {
@@ -259,7 +260,7 @@ setAnalysis(normalizeAnalysis(analysisData));
     setAnalysis(normalizedData);
 
     const saveResponse = await fetch(
-  `http://localhost:8080/api/candidate/resume/analysis/${uploadedResume.id}`,
+  `${API_URL}/api/candidate/resume/analysis/${uploadedResume.id}`,
   {
     method: "PUT",
     headers: {
@@ -290,10 +291,10 @@ if (!saveResponse.ok) {
       normalizedData.suggestions.length > 0;
 
     if (hasResult) {
-      setMessage("✅ Resume analyzed successfully!");
+      setMessage("âœ… Resume analyzed successfully!");
     } else {
       setMessage(
-        "⚠️ Analysis completed, but no result fields were returned."
+        "âš ï¸ Analysis completed, but no result fields were returned."
       );
     }
 
@@ -301,7 +302,7 @@ if (!saveResponse.ok) {
     console.error("Analysis Error:", error);
 
     setMessage(
-      `❌ ${error.message || "Unable to analyze resume"}`
+      `âŒ ${error.message || "Unable to analyze resume"}`
     );
   } finally {
     setAnalyzing(false);
@@ -317,11 +318,11 @@ if (!saveResponse.ok) {
           className="back-button"
           onClick={() => navigate("/candidate-dashboard")}
         >
-          ← Back to Dashboard
+          â† Back to Dashboard
         </button>
 
         <div className="resume-icon">
-          📄
+          ðŸ“„
         </div>
 
         <h1>Upload Your Resume</h1>
@@ -337,7 +338,7 @@ if (!saveResponse.ok) {
           <div className="uploaded-resume">
 
             <div className="uploaded-file-icon">
-              📄
+              ðŸ“„
             </div>
 
             <div className="uploaded-file-info">
@@ -368,7 +369,7 @@ if (!saveResponse.ok) {
             </button>
 
             <div className="uploaded-status">
-              ✓
+              âœ“
             </div>
 
           </div>
@@ -391,7 +392,7 @@ if (!saveResponse.ok) {
             </span>
 
             <span className="upload-subtitle">
-              PDF or DOCX • Maximum 5 MB
+              PDF or DOCX â€¢ Maximum 5 MB
             </span>
 
           </label>
@@ -410,14 +411,14 @@ if (!saveResponse.ok) {
           <div className="resume-message">
             <span>{message}</span>
 
-            {message.startsWith("❌") && uploadedResume && (
+            {message.startsWith("âŒ") && uploadedResume && (
               <button
                 type="button"
                 className="retry-analysis-button"
                 onClick={handleAnalyzeResume}
                 disabled={analyzing}
               >
-                🔄 Retry Analysis
+                ðŸ”„ Retry Analysis
               </button>
             )}
           </div>
@@ -450,7 +451,7 @@ if (!saveResponse.ok) {
 
             <div className="analysis-card">
 
-              <h3>🛠️ Extracted Skills</h3>
+              <h3>ðŸ› ï¸ Extracted Skills</h3>
 
               <div className="skills-list">
                 {analysis.extractedSkills.length > 0 ? (
@@ -470,7 +471,7 @@ if (!saveResponse.ok) {
 
             <div className="analysis-card">
 
-              <h3>💪 Strengths</h3>
+              <h3>ðŸ’ª Strengths</h3>
 
               {analysis.strengths.length > 0 ? (
                 analysis.strengths.map((item, index) => (
@@ -478,7 +479,7 @@ if (!saveResponse.ok) {
                     className="analysis-item strength"
                     key={index}
                   >
-                    ✓ {item}
+                    âœ“ {item}
                   </div>
                 ))
               ) : (
@@ -491,7 +492,7 @@ if (!saveResponse.ok) {
 
             <div className="analysis-card">
 
-              <h3>⚠️ Areas to Improve</h3>
+              <h3>âš ï¸ Areas to Improve</h3>
 
               {analysis.weaknesses.length > 0 ? (
                 analysis.weaknesses.map((item, index) => (
@@ -499,7 +500,7 @@ if (!saveResponse.ok) {
                     className="analysis-item weakness"
                     key={index}
                   >
-                    • {item}
+                    â€¢ {item}
                   </div>
                 ))
               ) : (
@@ -512,7 +513,7 @@ if (!saveResponse.ok) {
 
             <div className="analysis-card">
 
-              <h3>💡 AI Suggestions</h3>
+              <h3>ðŸ’¡ AI Suggestions</h3>
 
               {analysis.suggestions.length > 0 ? (
                 analysis.suggestions.map((item, index) => (
@@ -520,7 +521,7 @@ if (!saveResponse.ok) {
                     className="analysis-item suggestion"
                     key={index}
                   >
-                    → {item}
+                    â†’ {item}
                   </div>
                 ))
               ) : (
@@ -539,3 +540,4 @@ if (!saveResponse.ok) {
 }
 
 export default Resume;
+

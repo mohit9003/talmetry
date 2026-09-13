@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -24,7 +25,7 @@ function JobDetails() {
 
     // ================= LOAD JOB DETAILS =================
 
-    fetch(`http://localhost:8080/api/jobs/${id}`)
+    fetch(`${API_URL}/api/jobs/${id}`)
       .then(async (response) => {
         if (!response.ok) {
           const errorText = await response.text();
@@ -51,7 +52,7 @@ function JobDetails() {
     // ================= CHECK APPLICATION =================
 
     fetch(
-      `http://localhost:8080/api/applications/user/${user.id}`,
+      `${API_URL}/api/applications/user/${user.id}`,
       {
         method: "GET",
         headers: {
@@ -128,7 +129,7 @@ function JobDetails() {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/applications/apply?userId=${user.id}&jobId=${id}`,
+        `${API_URL}/api/applications/apply?userId=${user.id}&jobId=${id}`,
         {
           method: "POST",
           headers: {
@@ -179,7 +180,7 @@ function JobDetails() {
       setAlreadyApplied(true);
 
       setMessage(
-        "Application submitted successfully! 🎉"
+        "Application submitted successfully! ðŸŽ‰"
       );
 
       setMessageType("success");
@@ -258,7 +259,7 @@ function JobDetails() {
               navigate("/recommended-jobs")
             }
           >
-            ← Back to Jobs
+            â† Back to Jobs
           </button>
 
           <div className="job-details-card">
@@ -287,7 +288,7 @@ function JobDetails() {
             navigate("/recommended-jobs")
           }
         >
-          ← Back to Jobs
+          â† Back to Jobs
         </button>
 
         <div className="job-details-card">
@@ -323,19 +324,19 @@ function JobDetails() {
           <div className="job-details-info">
 
             <span>
-              📍 {job.location}
+              ðŸ“ {job.location}
             </span>
 
             <span>
-              💼 {job.jobType}
+              ðŸ’¼ {job.jobType}
             </span>
 
             <span>
-              💰 {job.salary}
+              ðŸ’° {job.salary}
             </span>
 
             <span>
-              🎓 {job.experience}
+              ðŸŽ“ {job.experience}
             </span>
 
           </div>
@@ -406,7 +407,7 @@ function JobDetails() {
               {applying
                 ? "Applying..."
                 : alreadyApplied
-                ? "✓ Already Applied"
+                ? "âœ“ Already Applied"
                 : "Apply Now"}
 
             </button>
@@ -433,3 +434,4 @@ function JobDetails() {
 }
 
 export default JobDetails;
+

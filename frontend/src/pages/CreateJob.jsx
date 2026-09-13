@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateJob.css";
@@ -55,7 +56,7 @@ function CreateJob() {
 
     try {
       const response = await fetch(
-  `http://localhost:8080/api/jobs?recruiterId=${user.id}`,
+  `${API_URL}/api/jobs?recruiterId=${user.id}`,
   {
     method: "POST",
     headers: {
@@ -140,7 +141,7 @@ function CreateJob() {
             navigate("/recruiter-dashboard")
           }
         >
-          ← Dashboard
+          â† Dashboard
         </button>
 
       </div>
@@ -153,7 +154,7 @@ function CreateJob() {
         <div className="form-heading">
 
           <div className="form-icon">
-            💼
+            ðŸ’¼
           </div>
 
           <div>
@@ -435,7 +436,7 @@ function CreateJob() {
             >
               {loading
                 ? "Creating Job..."
-                : "Create Job →"}
+                : "Create Job â†’"}
             </button>
 
           </div>
@@ -449,3 +450,4 @@ function CreateJob() {
 }
 
 export default CreateJob;
+

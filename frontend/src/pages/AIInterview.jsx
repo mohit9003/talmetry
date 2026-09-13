@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AIInterview.css";
@@ -87,7 +88,7 @@ function AIInterview() {
       // -----------------------------------------
 
       const aiResponse = await fetch(
-        "http://127.0.0.1:8000/api/evaluate-interview",
+        `${AI_URL}/api/evaluate-interview`,
         {
           method: "POST",
           headers: {
@@ -120,7 +121,7 @@ function AIInterview() {
       // -----------------------------------------
 
       const response = await fetch(
-  "http://localhost:8080/api/interviews/create",
+  `${API_URL}/api/interviews/create`,
   {
     method: "POST",
 
@@ -223,7 +224,7 @@ function AIInterview() {
             className="back-dashboard-btn"
             onClick={handleBack}
           >
-            ← Dashboard
+            â† Dashboard
           </button>
 
         </div>
@@ -234,7 +235,7 @@ function AIInterview() {
         <div className="interview-result-card">
 
           <div className="result-icon">
-            🎯
+            ðŸŽ¯
           </div>
 
           <h1>
@@ -308,7 +309,7 @@ function AIInterview() {
           <div className="feedback-section">
 
             <h3>
-              ✅ Strengths
+              âœ… Strengths
             </h3>
 
             <ul>
@@ -343,7 +344,7 @@ function AIInterview() {
           <div className="feedback-section">
 
             <h3>
-              ⚠️ Areas to Improve
+              âš ï¸ Areas to Improve
             </h3>
 
             <ul>
@@ -381,7 +382,7 @@ function AIInterview() {
             <div className="feedback-section">
 
               <h3>
-                📊 Answer Evaluation
+                ðŸ“Š Answer Evaluation
               </h3>
 
               <ul>
@@ -466,7 +467,7 @@ function AIInterview() {
           className="back-dashboard-btn"
           onClick={handleBack}
         >
-          ← Dashboard
+          â† Dashboard
         </button>
 
       </div>
@@ -572,7 +573,7 @@ function AIInterview() {
             className="start-interview-btn"
             onClick={handleStartInterview}
           >
-            Start AI Interview →
+            Start AI Interview â†’
           </button>
 
 
@@ -713,7 +714,7 @@ function AIInterview() {
                   : currentQuestion ===
                     questions.length - 1
                   ? "Finish Interview"
-                  : "Next Question →"}
+                  : "Next Question â†’"}
 
               </button>
 
@@ -775,3 +776,4 @@ function AIInterview() {
 }
 
 export default AIInterview;
+

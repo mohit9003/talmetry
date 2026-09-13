@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +26,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/auth/register",
+        `${API_URL}/api/auth/register`,
         {
           method: "POST",
           headers: {
@@ -126,3 +127,4 @@ function Register() {
 }
 
 export default Register;
+

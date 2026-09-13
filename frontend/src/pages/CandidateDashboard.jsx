@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -22,7 +23,7 @@ function CandidateDashboard() {
   const token = user.token;
 
   // Fetch applications
-  fetch(`http://localhost:8080/api/applications/user/${user.id}`, {
+  fetch(`${API_URL}/api/applications/user/${user.id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -52,7 +53,7 @@ function CandidateDashboard() {
     });
 
   // Fetch recommended jobs
-  fetch(`http://localhost:8080/api/jobs/recommended/${user.id}`, {
+  fetch(`${API_URL}/api/jobs/recommended/${user.id}`, {
     headers: token
       ? {
           Authorization: `Bearer ${token}`,
@@ -75,7 +76,7 @@ function CandidateDashboard() {
     });
 
       // Fetch candidate profile
-  fetch(`http://localhost:8080/api/candidate/profile/${user.id}`, {
+  fetch(`${API_URL}/api/candidate/profile/${user.id}`, {
     headers: {
       Authorization: `Bearer ${user.token}`,
     },
@@ -231,7 +232,7 @@ function CandidateDashboard() {
             </p>
 
             <h1>
-              Welcome back, {user?.fullName || "Candidate"} 👋
+              Welcome back, {user?.fullName || "Candidate"} ðŸ‘‹
             </h1>
 
             <p>
@@ -338,7 +339,7 @@ function CandidateDashboard() {
         </h3>
 
         <p>
-          {job.company} • {job.location}
+          {job.company} â€¢ {job.location}
         </p>
       </div>
 
@@ -501,7 +502,7 @@ function CandidateDashboard() {
                 navigate("/ai-interview")
               }
             >
-              Start AI Interview →
+              Start AI Interview â†’
             </button>
 
           </div>
@@ -515,3 +516,4 @@ function CandidateDashboard() {
 }
 
 export default CandidateDashboard;
+

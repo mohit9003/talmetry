@@ -16,6 +16,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +26,9 @@ import java.util.Optional;
 
 @Service
 public class ResumeAnalysisService {
+
+    @Value("${ai.service.url}")
+    private String aiServiceUrl;
 
     private final ResumeAnalysisRepository analysisRepository;
     private final ResumeRepository resumeRepository;
@@ -140,7 +144,7 @@ public class ResumeAnalysisService {
             ResponseEntity<AIResponse> response =
                     restTemplate.postForEntity(
 
-                            "http://127.0.0.1:8000/api/analyze-resume",
+                            aiServiceUrl + "/api/analyze-resume",
 
                             request,
 

@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Applications.css";
@@ -33,7 +34,7 @@ function Applications() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:8080/api/applications/user/${user.id}`,
+        `${API_URL}/api/applications/user/${user.id}`,
         {
           method: "GET",
           headers: {
@@ -141,7 +142,7 @@ function Applications() {
           <div className="applications-state">
 
             <div className="empty-icon">
-              📄
+              ðŸ“„
             </div>
 
             <h2>
@@ -208,13 +209,13 @@ function Applications() {
 
                       {application.job?.location && (
                         <span>
-                          📍 {application.job.location}
+                          ðŸ“ {application.job.location}
                         </span>
                       )}
 
                       {application.job?.jobType && (
                         <span>
-                          💼 {application.job.jobType}
+                          ðŸ’¼ {application.job.jobType}
                         </span>
                       )}
 
@@ -280,3 +281,4 @@ function Applications() {
 }
 
 export default Applications;
+

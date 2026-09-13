@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: talmetry_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: talmetry123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -31,8 +31,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/talmetry_db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: talmetry123
-      JWT_SECRET: TalmetrySuperSecretKeyForJWTAuthentication2026Secure
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      AI_SERVICE_URL: http://ai-service:8000
+      CORS_ALLOWED_ORIGIN: http://localhost:5173
     ports:
       - "8080:8080"
     restart: unless-stopped

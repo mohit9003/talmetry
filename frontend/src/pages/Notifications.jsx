@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import React, { useEffect, useState } from "react";
 
 const Notifications = () => {
@@ -9,7 +10,7 @@ const Notifications = () => {
   const loadNotifications = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/notifications",
+        `${API_URL}/api/notifications`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -33,7 +34,7 @@ const Notifications = () => {
   const markAsRead = async (id) => {
     try {
       await fetch(
-        `http://localhost:8080/api/notifications/${id}/read`,
+        `${API_URL}/api/notifications/${id}/read`,
         {
           method: "PUT",
           headers: {
@@ -57,7 +58,7 @@ const Notifications = () => {
   const markAllAsRead = async () => {
     try {
       await fetch(
-        "http://localhost:8080/api/notifications/read-all",
+        `${API_URL}/api/notifications/read-all`,
         {
           method: "PUT",
           headers: {
@@ -107,7 +108,7 @@ const Notifications = () => {
 
           <div className="page-header">
             <div>
-              <h1>Notifications 🔔</h1>
+              <h1>Notifications ðŸ””</h1>
               <p>
                 Stay updated with your applications and recruitment activity.
               </p>
@@ -127,7 +128,7 @@ const Notifications = () => {
 
             {notifications.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🔔</div>
+                <div className="empty-icon">ðŸ””</div>
                 <h2>No notifications yet</h2>
                 <p>
                   You will receive updates when your application status changes.
@@ -147,8 +148,8 @@ const Notifications = () => {
                 >
                   <div className="notification-icon">
                     {notification.type === "APPLICATION_STATUS"
-                      ? "📋"
-                      : "📨"}
+                      ? "ðŸ“‹"
+                      : "ðŸ“¨"}
                   </div>
 
                   <div className="notification-content">
@@ -178,3 +179,4 @@ const Notifications = () => {
 };
 
 export default Notifications;
+

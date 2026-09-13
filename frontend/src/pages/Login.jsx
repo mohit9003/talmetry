@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +17,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/auth/login",
+        `${API_URL}/api/auth/login`,
         {
           method: "POST",
           headers: {
@@ -205,3 +206,4 @@ const data = contentType && contentType.includes("application/json")
 }
 
 export default Login;
+

@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ManageJobs.css";
@@ -55,7 +56,7 @@ function ManageJobs() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:8080/api/jobs/recruiter/${user.id}`,
+        `${API_URL}/api/jobs/recruiter/${user.id}`,
         {
           method: "GET",
           headers: {
@@ -100,7 +101,7 @@ function ManageJobs() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:8080/api/jobs/${jobId}`,
+        `${API_URL}/api/jobs/${jobId}`,
         {
           method: "DELETE",
           headers: {
@@ -168,7 +169,7 @@ function ManageJobs() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:8080/api/jobs/${editingJob.id}`,
+        `${API_URL}/api/jobs/${editingJob.id}`,
         {
           method: "PUT",
           headers: {
@@ -262,12 +263,12 @@ function ManageJobs() {
               navigate("/recruiter-dashboard")
             }
           >
-            <span>▦</span>
+            <span>â–¦</span>
             Dashboard
           </button>
 
           <button className="active">
-            <span>💼</span>
+            <span>ðŸ’¼</span>
             Manage Jobs
           </button>
 
@@ -276,7 +277,7 @@ function ManageJobs() {
               navigate("/recruiter/create-job")
             }
           >
-            <span>＋</span>
+            <span>ï¼‹</span>
             Create Job
           </button>
 
@@ -285,7 +286,7 @@ function ManageJobs() {
               navigate("/recruiter/applicants")
             }
           >
-            <span>👥</span>
+            <span>ðŸ‘¥</span>
             Applicants
           </button>
 
@@ -295,7 +296,7 @@ function ManageJobs() {
           className="manage-logout"
           onClick={handleLogout}
         >
-          <span>↪</span>
+          <span>â†ª</span>
           Logout
         </button>
 
@@ -331,7 +332,7 @@ function ManageJobs() {
                 navigate("/recruiter-dashboard")
               }
             >
-              ← Dashboard
+              â† Dashboard
             </button>
 
             <button
@@ -372,13 +373,13 @@ function ManageJobs() {
 
         {message && (
           <div className="manage-message success-message">
-            ✓ {message}
+            âœ“ {message}
           </div>
         )}
 
         {error && (
           <div className="manage-message error-message">
-            ⚠ {error}
+            âš  {error}
           </div>
         )}
 
@@ -409,7 +410,7 @@ function ManageJobs() {
             <div className="jobs-empty">
 
               <div className="loading-spinner">
-                ⏳
+                â³
               </div>
 
               <h3>
@@ -429,7 +430,7 @@ function ManageJobs() {
             <div className="jobs-empty">
 
               <div className="empty-job-icon">
-                💼
+                ðŸ’¼
               </div>
 
               <h3>
@@ -471,7 +472,7 @@ function ManageJobs() {
                     <div className="manage-job-title">
 
                       <div className="manage-job-icon">
-                        💼
+                        ðŸ’¼
                       </div>
 
                       <div>
@@ -496,8 +497,8 @@ function ManageJobs() {
                   {/* LOCATION */}
 
                   <div className="job-location">
-                    📍 {job.location}
-                    <span>•</span>
+                    ðŸ“ {job.location}
+                    <span>â€¢</span>
                     {job.jobType}
                   </div>
 
@@ -565,7 +566,7 @@ function ManageJobs() {
                         navigate(`/job/${job.id}`)
                       }
                     >
-                      👁 View
+                      ðŸ‘ View
                     </button>
 
                     <button
@@ -574,7 +575,7 @@ function ManageJobs() {
                         handleEdit(job)
                       }
                     >
-                      ✏ Edit
+                      âœ Edit
                     </button>
 
                     <button
@@ -588,7 +589,7 @@ function ManageJobs() {
                     >
                       {deletingId === job.id
                         ? "Deleting..."
-                        : "🗑 Delete"}
+                        : "ðŸ—‘ Delete"}
                     </button>
 
                   </div>
@@ -633,7 +634,7 @@ function ManageJobs() {
                   setEditingJob(null)
                 }
               >
-                ×
+                Ã—
               </button>
 
             </div>
@@ -790,7 +791,7 @@ function ManageJobs() {
                 >
                   {saving
                     ? "Saving..."
-                    : "✓ Save Changes"}
+                    : "âœ“ Save Changes"}
                 </button>
 
               </div>
@@ -808,3 +809,4 @@ function ManageJobs() {
 }
 
 export default ManageJobs;
+

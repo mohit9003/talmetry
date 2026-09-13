@@ -1,3 +1,4 @@
+﻿import { API_URL, AI_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CandidateDetails.css";
@@ -66,7 +67,7 @@ function CandidateDetails() {
       // =======================================================
 
       const profileResponse = await fetch(
-        `http://localhost:8080/api/candidate/profile/${id}`,
+        `${API_URL}/api/candidate/profile/${id}`,
         {
           method: "GET",
           headers,
@@ -88,7 +89,7 @@ function CandidateDetails() {
       // =======================================================
 
       const jobsResponse = await fetch(
-        `http://localhost:8080/api/jobs/recruiter/${storedUser.id}`,
+        `${API_URL}/api/jobs/recruiter/${storedUser.id}`,
         {
           method: "GET",
           headers,
@@ -112,7 +113,7 @@ function CandidateDetails() {
       for (const job of recruiterJobs) {
         try {
           const applicationsResponse = await fetch(
-            `http://localhost:8080/api/applications/job/${job.id}`,
+            `${API_URL}/api/applications/job/${job.id}`,
             {
               method: "GET",
               headers,
@@ -149,7 +150,7 @@ function CandidateDetails() {
       // =======================================================
 
       const resumeResponse = await fetch(
-        `http://localhost:8080/api/candidate/resume/${id}`,
+        `${API_URL}/api/candidate/resume/${id}`,
         {
           method: "GET",
           headers,
@@ -169,7 +170,7 @@ function CandidateDetails() {
 
         if (resumeData.id) {
           const analysisResponse = await fetch(
-            `http://localhost:8080/api/candidate/resume-analysis/${resumeData.id}`,
+            `${API_URL}/api/candidate/resume-analysis/${resumeData.id}`,
             {
               method: "GET",
               headers,
@@ -388,7 +389,7 @@ function CandidateDetails() {
     return (
       <div className="candidate-details-loading">
         <div className="details-loader">
-          ⏳
+          â³
         </div>
 
         <h2>
@@ -412,7 +413,7 @@ function CandidateDetails() {
       <div className="candidate-details-error-page">
 
         <div className="details-error-icon">
-          ⚠️
+          âš ï¸
         </div>
 
         <h2>
@@ -428,7 +429,7 @@ function CandidateDetails() {
             navigate("/recruiter/applicants")
           }
         >
-          ← Back to Applicants
+          â† Back to Applicants
         </button>
 
       </div>
@@ -473,7 +474,7 @@ function CandidateDetails() {
               navigate("/recruiter-dashboard")
             }
           >
-            📊 Dashboard
+            ðŸ“Š Dashboard
           </button>
 
           <button
@@ -481,7 +482,7 @@ function CandidateDetails() {
               navigate("/recruiter/jobs")
             }
           >
-            💼 Manage Jobs
+            ðŸ’¼ Manage Jobs
           </button>
 
           <button
@@ -489,7 +490,7 @@ function CandidateDetails() {
               navigate("/recruiter/create-job")
             }
           >
-            ➕ Create Job
+            âž• Create Job
           </button>
 
           <button
@@ -498,7 +499,7 @@ function CandidateDetails() {
               navigate("/recruiter/applicants")
             }
           >
-            👥 Applicants
+            ðŸ‘¥ Applicants
           </button>
 
         </nav>
@@ -507,7 +508,7 @@ function CandidateDetails() {
           className="recruiter-logout"
           onClick={handleLogout}
         >
-          🚪 Logout
+          ðŸšª Logout
         </button>
 
       </aside>
@@ -528,7 +529,7 @@ function CandidateDetails() {
               navigate("/recruiter/applicants")
             }
           >
-            ← Back to Applicants
+            â† Back to Applicants
           </button>
 
           <div className="recruiter-user">
@@ -576,11 +577,11 @@ function CandidateDetails() {
             </h1>
 
             <p className="candidate-email">
-              ✉ {candidate?.email}
+              âœ‰ {candidate?.email}
             </p>
 
             <p className="candidate-location">
-              📍{" "}
+              ðŸ“{" "}
               {candidate?.location ||
                 "Location not provided"}
             </p>
@@ -655,7 +656,7 @@ function CandidateDetails() {
 
                           const response =
                             await fetch(
-                              `http://localhost:8080/api/candidate/resume/download/${id}`,
+                              `${API_URL}/api/candidate/resume/download/${id}`,
                               {
                                 method: "GET",
                                 headers: {
@@ -704,13 +705,13 @@ function CandidateDetails() {
 
                       }}
                     >
-                      📄 View Resume
+                      ðŸ“„ View Resume
                     </button>
 
                   )}
 
                   <div className="card-icon">
-                    🤖
+                    ðŸ¤–
                   </div>
 
                 </div>
@@ -821,7 +822,7 @@ function CandidateDetails() {
                 <div className="no-analysis">
 
                   <span>
-                    📄
+                    ðŸ“„
                   </span>
 
                   <h3>
@@ -850,7 +851,7 @@ function CandidateDetails() {
                 <div>
 
                   <h2>
-                    🎯 Job Match Score
+                    ðŸŽ¯ Job Match Score
                   </h2>
 
                   <p>
@@ -861,7 +862,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  🎯
+                  ðŸŽ¯
                 </span>
 
               </div>
@@ -947,7 +948,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  💼
+                  ðŸ’¼
                 </span>
 
               </div>
@@ -957,7 +958,7 @@ function CandidateDetails() {
                 <div className="info-item">
 
                   <span>
-                    🎓 Education
+                    ðŸŽ“ Education
                   </span>
 
                   <strong>
@@ -970,7 +971,7 @@ function CandidateDetails() {
                 <div className="info-item">
 
                   <span>
-                    💼 Experience
+                    ðŸ’¼ Experience
                   </span>
 
                   <strong>
@@ -983,7 +984,7 @@ function CandidateDetails() {
                 <div className="info-item">
 
                   <span>
-                    📱 Phone
+                    ðŸ“± Phone
                   </span>
 
                   <strong>
@@ -996,7 +997,7 @@ function CandidateDetails() {
                 <div className="info-item">
 
                   <span>
-                    📍 Location
+                    ðŸ“ Location
                   </span>
 
                   <strong>
@@ -1032,7 +1033,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  🛠️
+                  ðŸ› ï¸
                 </span>
 
               </div>
@@ -1087,7 +1088,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  📋
+                  ðŸ“‹
                 </span>
 
               </div>
@@ -1184,7 +1185,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  🔗
+                  ðŸ”—
                 </span>
 
               </div>
@@ -1196,7 +1197,7 @@ function CandidateDetails() {
                 <div className="profile-link-item">
 
                   <span className="link-icon">
-                    💻
+                    ðŸ’»
                   </span>
 
                   <div>
@@ -1212,7 +1213,7 @@ function CandidateDetails() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        View GitHub Profile ↗
+                        View GitHub Profile â†—
                       </a>
 
                     ) : (
@@ -1232,7 +1233,7 @@ function CandidateDetails() {
                 <div className="profile-link-item">
 
                   <span className="link-icon">
-                    💼
+                    ðŸ’¼
                   </span>
 
                   <div>
@@ -1248,7 +1249,7 @@ function CandidateDetails() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        View LinkedIn Profile ↗
+                        View LinkedIn Profile â†—
                       </a>
 
                     ) : (
@@ -1288,7 +1289,7 @@ function CandidateDetails() {
                 </div>
 
                 <span className="card-icon">
-                  📊
+                  ðŸ“Š
                 </span>
 
               </div>
@@ -1374,7 +1375,7 @@ function CandidateDetails() {
                 navigate("/recruiter/applicants")
               }
             >
-              ← Back to Applicant List
+              â† Back to Applicant List
             </button>
 
           </div>
@@ -1388,3 +1389,4 @@ function CandidateDetails() {
 }
 
 export default CandidateDetails;
+
