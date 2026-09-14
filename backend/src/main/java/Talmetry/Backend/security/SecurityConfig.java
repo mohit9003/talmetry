@@ -31,12 +31,13 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-
-            // ================= CORS & CSRF =================
+            // ================= CORS =================
 
             .cors(cors ->
                     cors.configurationSource(corsConfigurationSource)
             )
+
+            // ================= CSRF =================
 
             .csrf(csrf ->
                     csrf.disable()
@@ -54,19 +55,30 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // ================= PUBLIC =================
+                // ================= PUBLIC AUTH =================
 
                 .requestMatchers(
-                        "/api/auth/register",
-                        "/api/auth/login"
+                        "/api/auth/**"
                 ).permitAll()
+
+                // ================= PUBLIC OPTIONS =================
 
                 .requestMatchers(
                         HttpMethod.OPTIONS,
                         "/**"
                 ).permitAll()
 
-                // ================= JOBS =================
+                // ================= PUBLIC JOB GET =================
+
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/jobs",
+                        "/api/jobs/open",
+                        "/api/jobs/*",
+                        "/api/jobs/recommended/**"
+                ).permitAll()
+
+                // ================= RECRUITER JOBS =================
 
                 .requestMatchers(
                         "/api/jobs/recruiter/**"
@@ -86,14 +98,6 @@ public class SecurityConfig {
                         HttpMethod.DELETE,
                         "/api/jobs/**"
                 ).hasRole("RECRUITER")
-
-                .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/jobs",
-                        "/api/jobs/open",
-                        "/api/jobs/*",
-                        "/api/jobs/recommended/**"
-                ).permitAll()
 
                 // ================= CANDIDATE =================
 
