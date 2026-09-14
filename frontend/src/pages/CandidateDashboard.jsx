@@ -1,4 +1,4 @@
-﻿import { API_URL, AI_URL } from "../api";
+﻿import { API_URL } from "../api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,6 +14,8 @@ function CandidateDashboard() {
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [profileSkills, setProfileSkills] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [interviewCount, setInterviewCount] = useState(0);
+  const [latestInterviewScore, setLatestInterviewScore] = useState(null);
   useEffect(() => {
   if (!user) {
     navigate("/login");
@@ -78,7 +80,8 @@ function CandidateDashboard() {
       // Fetch candidate profile
   fetch(`${API_URL}/api/candidate/profile/${user.id}`, {
     headers: {
-      Authorization: `Bearer ${user.token}`,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   })
     .then((response) => {
@@ -126,6 +129,68 @@ function CandidateDashboard() {
       console.error("Profile skills error:", error);
       setProfileSkills([]);
     });
+
+
+    // Fetch interview history
+    fetch(`${API_URL}/api/interviews/user/${user.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch interview history");
+        }
+
+        return response.json();
+      })
+      .then((data) => {
+        const interviews = Array.isArray(data) ? data : [];
+
+        setInterviewCount(interviews.length);
+
+        if (interviews.length > 0) {
+          const latestInterview = [...interviews].sort((a, b) => {
+            const dateA = new Date(
+              a.createdAt || a.completedAt || a.date || 0
+            ).getTime();
+
+            const dateB = new Date(
+              b.createdAt || b.completedAt || b.date || 0
+            ).getTime();
+
+            return dateB - dateA;
+          })[0];
+
+          // Read the actual overall interview score from the saved backend result.
+          // Support the field names used by different interview-result versions.
+          const rawScore =
+            latestInterview?.score ??
+            latestInterview?.overallScore ??
+            latestInterview?.overall_score ??
+            latestInterview?.finalScore ??
+            latestInterview?.final_score;
+
+          const parsedScore =
+            rawScore === null || rawScore === undefined || rawScore === ""
+              ? NaN
+              : Number(rawScore);
+
+          setLatestInterviewScore(
+            Number.isFinite(parsedScore)
+              ? Math.round(parsedScore)
+              : null
+          );
+        } else {
+          setLatestInterviewScore(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Interview history error:", error);
+        setInterviewCount(0);
+        setLatestInterviewScore(null);
+      });
 
 }, [navigate, user?.id, user?.token]);
   const menuItems = [
@@ -232,7 +297,7 @@ function CandidateDashboard() {
             </p>
 
             <h1>
-              Welcome back, {user?.fullName || "Candidate"} ðŸ‘‹
+              Welcome back, {user?.fullName || "Candidate"}!
             </h1>
 
             <p>
@@ -279,17 +344,25 @@ function CandidateDashboard() {
             <strong>{applicationCount}</strong>
 
             <small>
-              2 interviews scheduled
+              {interviewCount === 0
+                ? "No interviews yet"
+                : `${interviewCount} interview${interviewCount > 1 ? "s" : ""} completed`}
             </small>
           </div>
 
           <div className="dashboard-stat-card">
             <span>AI Interview Score</span>
 
-            <strong>86%</strong>
+            <strong>
+              {latestInterviewScore !== null
+                ? `${latestInterviewScore}%`
+                : "—"}
+            </strong>
 
             <small>
-              Excellent performance
+              {latestInterviewScore !== null
+                ? "Latest interview performance"
+                : "Complete an AI interview to get your score"}
             </small>
           </div>
 
@@ -339,7 +412,7 @@ function CandidateDashboard() {
         </h3>
 
         <p>
-          {job.company} â€¢ {job.location}
+          {job.company} • {job.location}
         </p>
       </div>
 
@@ -502,7 +575,7 @@ function CandidateDashboard() {
                 navigate("/ai-interview")
               }
             >
-              Start AI Interview â†’
+              Start AI Interview →
             </button>
 
           </div>
