@@ -17,7 +17,12 @@ function RecommendedJobs() {
       return;
     }
 
-    fetch(`${API_URL}/api/jobs/recommended/${user.id}`)
+    fetch(`${API_URL}/api/jobs/recommended/${user.id}`, {
+  headers: {
+    Authorization: `Bearer ${user.token}`,
+    "Content-Type": "application/json",
+  },
+})
       .then(async (response) => {
         if (!response.ok) {
           const message = await response.text();
